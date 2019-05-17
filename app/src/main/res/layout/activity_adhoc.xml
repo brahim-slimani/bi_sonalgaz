@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/grdnt">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/border"
+                        android:orientation="horizontal"
+                        android:layout_margin="10dp">
+
+
+                        <Button
+                            android:id="@+id/mesaures_btn"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_margin="6dp"
+                            android:layout_alignParentRight="true"
+                            android:background="@drawable/hunter"/>
+
+
+                        <LinearLayout
+                            android:id="@+id/measure_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="34dp"
+                            android:orientation="horizontal"
+                            android:layout_alignParentLeft="true">
+
+                            <TextView
+                                android:id="@+id/label_measures"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Measures"
+                                android:textSize="14dp"
+                                android:textColor="#fff"
+                                android:padding="8dp"/>
+
+                        </LinearLayout>
+
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/border"
+                        android:orientation="horizontal"
+                        android:layout_marginHorizontal="10dp">
+
+                        <Button
+                            android:id="@+id/dimensions_btn"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_margin="6dp"
+                            android:layout_alignParentRight="true"
+                            android:background="@drawable/hunter"/>
+
+                        <LinearLayout
+                            android:id="@+id/dimensions_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="34dp"
+                            android:layout_alignParentLeft="true">
+
+                            <TextView
+                                android:id="@+id/label_dimensions"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Dimensions"
+                                android:textSize="14dp"
+                                android:textColor="#fff"
+                                android:padding="8dp"/>
+
+                        </LinearLayout>
+
+                    </RelativeLayout>
+
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/border"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="55dp"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:id="@+id/workspace_frame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="7dp">
+
+                    </FrameLayout>
+
+
+
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/config_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/axis"/>
+
+        <Button
+            android:id="@+id/charts_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="30dp"
+            android:enabled="false"
+            android:background="@drawable/typechart"/>
+
+        <Button
+            android:id="@+id/save_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="30dp"
+            android:background="@drawable/save"/>
+
+        <Button
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="30dp"
+            android:enabled="false"
+            android:background="@drawable/funnel"/>
+
+        <Button
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="30dp"
+            android:enabled="false"
+            android:background="@drawable/download"/>
+
+        <Button
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="30dp"
+            android:background="@drawable/previous"/>
+
+
+
+    </LinearLayout>
+</RelativeLayout>
