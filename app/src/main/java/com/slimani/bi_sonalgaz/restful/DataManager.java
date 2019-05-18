@@ -5,6 +5,7 @@ import android.database.Cursor;
 
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
@@ -147,22 +148,123 @@ public class DataManager {
       return query;
     }
 
+    public List<String> getAdhocColumns(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
+                                        AxeMeasure axeMeasure){
+        List<String> columns = new ArrayList<>();
+
+        if(axeMeasure.getRole().equals("columns")){
+            int i = 0;
+            while (i < measureList.size()){
+                columns.add(new String(measureList.get(i).getMeasure()));
+                i++;
+            }
+        }else if(axeMeasure.getRole().equals("rows")){
+            int j = 0;
+            while(j < dimensionList.size()){
+                int k = 0;
+                while(k < dimensionList.get(j).getColumns().size()){
+
+                    columns.add(new String(dimensionList.get(j).getColumns().get(k)));
+
+                    k++;
+                }
+
+                j++;
+            }
+
+        }
+
+        return columns;
+
+    }
+
+    public List<String> getAdhocRows(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
+                                        AxeMeasure axeMeasure){
+        List<String> rows = new ArrayList<>();
+
+        if(axeMeasure.getRole().equals("rows")){
+            int i = 0;
+            while (i < measureList.size()){
+                rows.add(new String(measureList.get(i).getMeasure()));
+                i++;
+            }
+        }else if(axeMeasure.getRole().equals("columns")){
+            int j = 0;
+            while(j < dimensionList.size()){
+                int k = 0;
+                while(k < dimensionList.get(j).getColumns().size()){
+
+                    rows.add(new String(dimensionList.get(j).getColumns().get(k)));
+
+                    k++;
+                }
+
+                j++;
+            }
+
+        }
+
+        return rows;
+
+    }
 
 
-    public List<DataEntry> parsingJSONArray(JSONArray jsonArray) throws JSONException {
+
+
+    public List<DataEntry> parsingToListBar(JSONArray jsonArray, List<String> columns, List<String> rows) throws JSONException {
         List<DataEntry> list = new ArrayList<DataEntry>();
 
-        int i = 0;
-        while (i<jsonArray.length()){
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
+        String row = rows.get(0);
+        String valueRows = "";
 
-            //list.add(new ValueDataEntry(, 80540)))
+        int i = 0;
+        JSONObject jsonObject = new JSONObject();
+        while (i<jsonArray.length()){
+            try {
+                jsonObject = jsonArray.getJSONObject(i);
+                valueRows = String.valueOf( jsonObject.get(row));
+
+                if(columns.size() == 1){
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0))));
+                }
+
+                if(columns.size() == 2){
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),  (Number) jsonObject.get(columns.get(1)) ));
+                }
+
+                if(columns.size() == 3){
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),
+                            (Number) jsonObject.get(columns.get(1)), (Number) jsonObject.get(columns.get(1))  ));
+                }
+
+            }catch (ClassCastException e){
+                if(columns.size() == 1){
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0))));
+                }
+
+                if(columns.size() == 2){
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),  (String) jsonObject.get(columns.get(1)) ));
+                }
+
+                if(columns.size() == 3) {
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),
+                            (String) jsonObject.get(columns.get(1)), (String) jsonObject.get(columns.get(1))));
+                }
+
+            }
+
+
+
+
             i++;
         }
 
         return list;
 
     }
+
+
+
 
 
 

@@ -38,6 +38,8 @@ import java.util.List;
 public class AdhocActivity extends AppCompatActivity {
 
     public static JSONArray dataJS = new JSONArray();
+    public static List<String> adhocColumns = new ArrayList<>();
+    public static List<String> adhocRows = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -333,6 +335,12 @@ public class AdhocActivity extends AppCompatActivity {
                         String cube = dataManager.buildQuery(listMeasures,listDimensions,dataManager.getCurrentCube(getApplicationContext()));
                         Service service = new Service();
                         service.consumesRest(getApplicationContext(),"?query="+cube);
+
+                        adhocColumns = dataManager.getAdhocColumns(listMeasures,listDimensions,axeMeasureObject);
+                        adhocRows = dataManager.getAdhocRows(listMeasures,listDimensions,axeMeasureObject);
+                        if(adhocRows.size()>1){
+                            adhocRows = adhocRows.subList(0,1);
+                        }
 
                         final Dialog dialog = new Dialog(AdhocActivity.this);
                         dialog.setContentView(R.layout.popup_typechart);
