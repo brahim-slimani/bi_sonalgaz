@@ -35,5 +35,4 @@ public class CustomDataEntry extends ValueDataEntry {
     }
 
 
-
 }

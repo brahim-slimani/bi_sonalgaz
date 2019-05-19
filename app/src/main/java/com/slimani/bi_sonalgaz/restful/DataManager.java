@@ -234,7 +234,7 @@ public class DataManager {
 
                 if(columns.size() == 3){
                     list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),
-                            (Number) jsonObject.get(columns.get(1)), (Number) jsonObject.get(columns.get(1))  ));
+                            (Number) jsonObject.get(columns.get(1)), (Number) jsonObject.get(columns.get(2))  ));
                 }
 
             }catch (ClassCastException e){
@@ -243,12 +243,12 @@ public class DataManager {
                 }
 
                 if(columns.size() == 2){
-                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),  (String) jsonObject.get(columns.get(1)) ));
+                    list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),  String.valueOf(jsonObject.get(columns.get(1)))  ));
                 }
 
                 if(columns.size() == 3) {
                     list.add(new CustomDataEntry(valueRows, (Number) jsonObject.get(columns.get(0)),
-                            (String) jsonObject.get(columns.get(1)), (String) jsonObject.get(columns.get(1))));
+                            String.valueOf(jsonObject.get(columns.get(1))), String.valueOf(jsonObject.get(columns.get(2))) ));
                 }
 
             }
@@ -262,6 +262,38 @@ public class DataManager {
         return list;
 
     }
+
+    public List<DataEntry> parsingToListPie(JSONArray jsonArray, String column, List<String> rows) throws JSONException {
+        List<DataEntry> list = new ArrayList<DataEntry>();
+
+        String row = rows.get(0);
+        String valueRows = "";
+
+        int i = 0;
+        JSONObject jsonObject = new JSONObject();
+        while (i<jsonArray.length()){
+            try {
+                jsonObject = jsonArray.getJSONObject(i);
+                valueRows = String.valueOf(jsonObject.get(row));
+
+                list.add(new ValueDataEntry(valueRows, (Number) jsonObject.get(column)));
+
+            }catch (ClassCastException e){
+
+                list.add(new CustomDataEntry(valueRows,0,  String.valueOf(jsonObject.get(column))));
+
+
+            }
+
+
+            i++;
+        }
+
+        return list;
+
+    }
+
+
 
 
 

@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.anychart.AnyChart;
@@ -18,14 +19,21 @@ import com.anychart.core.ui.ChartCredits;
 import com.anychart.enums.Align;
 import com.anychart.enums.LegendLayout;
 import com.slimani.bi_sonalgaz.R;
+import com.slimani.bi_sonalgaz.restful.DataManager;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocColumns;
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocRows;
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.customPieContext;
 import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.dataJS;
 
 public class PiechartFragment extends Fragment {
     View view;
+    String currentColumn;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -36,7 +44,10 @@ public class PiechartFragment extends Fragment {
         final AnyChartView anyChartView = view.findViewById(R.id.any_chart_view);
         anyChartView.setProgressBar(view.findViewById(R.id.progress_bar));
 
-        Pie pie = AnyChart.pie();
+        final Button next_chart = (Button) view.findViewById(R.id.next_piechart_btn);
+        final Button previous_chart = (Button) view.findViewById(R.id.previous_piechart_btn);
+
+        Pie pie = AnyChart.pie3d();
 
         anyChartView.setLicenceKey("b.slimani@esi-sba.dz-b0e90d3d-68aabd2c");
         ChartCredits cc = pie.credits();
@@ -49,32 +60,28 @@ public class PiechartFragment extends Fragment {
             }
         });
 
-        List<DataEntry> data = new ArrayList<>();
-        data.add(new ValueDataEntry("Apples", 6371664));
-        data.add(new ValueDataEntry("Pears", 789622));
-        data.add(new ValueDataEntry("Bananas", 7216301));
-        data.add(new ValueDataEntry("Grapes", 1486621));
-        data.add(new ValueDataEntry("Oranges", 1200000));
+        DataManager dataManager = new DataManager();
 
-        List<DataEntry> data2 = new ArrayList<>();
-        data2.add(new ValueDataEntry("2017", 451));
-        data2.add(new ValueDataEntry("2018", 501));
+        currentColumn = adhocColumns.get(0);
 
+        CustomPieContext pieContext = new CustomPieContext();
+        pieContext.setColumn(currentColumn);
+        try {
+            pieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-
-
-        pie.data(data);
-        pie.data(data2);
+        pie.data(customPieContext.getDataEntryList());
 
 
-
-        pie.title("Fruits imported in 2015 (in kg)");
+        //pie.title("");
 
         pie.labels().position("outside");
 
         pie.legend().title().enabled(true);
         pie.legend().title()
-                .text("Retail channels")
+                .text(customPieContext.getColumn())
                 .padding(0d, 0d, 10d, 0d);
 
         pie.legend()
@@ -85,6 +92,50 @@ public class PiechartFragment extends Fragment {
 
 
         anyChartView.setChart(pie);
+
+
+
+        next_chart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int index = adhocColumns.indexOf(currentColumn);
+                if(index+1 < adhocColumns.size()){
+                    currentColumn = adhocColumns.get(index+1);
+                    pieContext.setColumn(currentColumn);
+
+
+                    try {
+
+                        pieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+
+
+                        pie.data(pieContext.getDataEntryList());
+
+                        pie.labels().position("outside");
+
+                        pie.legend().title().enabled(true);
+                        pie.legend().title()
+                                .text(pieContext.getColumn())
+                                .padding(0d, 0d, 10d, 0d);
+
+                        pie.legend()
+                                .position("center-bottom")
+                                .itemsLayout(LegendLayout.HORIZONTAL)
+                                .align(Align.CENTER);
+
+
+
+                        anyChartView.setChart(pie);
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    Toast.makeText(getContext(), "The charts are over", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
 
         return view;

@@ -163,11 +163,12 @@
             android:background="@drawable/funnel"/>
 
         <Button
+            android:id="@+id/next_result_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginLeft="30dp"
             android:enabled="false"
-            android:background="@drawable/download"/>
+            android:background="@drawable/next"/>
 
         <Button
             android:layout_width="30dp"

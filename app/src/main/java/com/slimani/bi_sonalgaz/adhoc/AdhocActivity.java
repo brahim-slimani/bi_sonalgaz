@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.slimani.bi_sonalgaz.R;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.ColumnbarFrgament;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CrosstableFragment;
+import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomPieContext;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.PiechartFragment;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
@@ -40,6 +41,8 @@ public class AdhocActivity extends AppCompatActivity {
     public static JSONArray dataJS = new JSONArray();
     public static List<String> adhocColumns = new ArrayList<>();
     public static List<String> adhocRows = new ArrayList<>();
+    public static CustomPieContext customPieContext = new CustomPieContext();
+    String currentColumn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,7 @@ public class AdhocActivity extends AppCompatActivity {
         final Button charts_btn = (Button) findViewById(R.id.charts_btn);
         final Button config_btn = (Button) findViewById(R.id.config_btn);
         final Button save_btn = (Button) findViewById(R.id.save_btn);
+        final Button nextResult_btn = (Button) findViewById(R.id.next_result_btn);
 
         String ms = getIntent().getStringExtra("measures");
         String dm = getIntent().getStringExtra("dimensions");
@@ -361,14 +365,25 @@ public class AdhocActivity extends AppCompatActivity {
                                     typeChart = getResources().getResourceEntryName(radioButton.getId());
                                     dialog.dismiss();
 
-                                    //initialise the chart context
                                     if(typeChart.equals("crosstable")){
+                                        nextResult_btn.setEnabled(false);
                                         loadFragment(new CrosstableFragment());
 
                                     }else if(typeChart.equals("piechart")){
+
+                                        try {
+                                            currentColumn = adhocColumns.get(0);
+                                            customPieContext.setColumn(adhocColumns.get(0));
+                                            nextResult_btn.setEnabled(true);
+                                            customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS,adhocColumns.get(0),adhocRows));
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
                                         loadFragment(new PiechartFragment());
 
                                     }else if(typeChart.equals("columnbarchart")){
+                                        nextResult_btn.setEnabled(false);
                                         loadFragment(new ColumnbarFrgament());
 
                                     }
@@ -395,6 +410,34 @@ public class AdhocActivity extends AppCompatActivity {
 
                 System.out.println(dataManager.buildQuery(listMeasures,listDimensions,dataManager.getCurrentCube(getApplicationContext())));
 
+            }
+        });
+
+        nextResult_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                int index = adhocColumns.indexOf(currentColumn);
+                if(index+1 < adhocColumns.size()){
+                    currentColumn = adhocColumns.get(index+1);
+                    customPieContext.setColumn(currentColumn);
+                    try {
+                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+                        loadFragment(new PiechartFragment());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }else if(index+1 == adhocColumns.size()){
+                    currentColumn = adhocColumns.get(0);
+                    customPieContext.setColumn(currentColumn);
+                    try {
+                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+                        loadFragment(new PiechartFragment());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 
