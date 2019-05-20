@@ -15,9 +15,16 @@ import com.anychart.core.ui.ChartCredits;
 import com.anychart.enums.SelectionMode;
 import com.anychart.graphics.vector.SolidFill;
 import com.slimani.bi_sonalgaz.R;
+import com.slimani.bi_sonalgaz.restful.DataManager;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocColumns;
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocRows;
+import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.dataJS;
 
 public class CrosstableFragment extends Fragment {
 
@@ -33,13 +40,15 @@ public class CrosstableFragment extends Fragment {
         anyChartView.setProgressBar(view.findViewById(R.id.progress_bar));
         anyChartView.setLicenceKey("b.slimani@esi-sba.dz-b0e90d3d-68aabd2c");
 
-        HeatMap riskMap = AnyChart.heatMap();
+        HeatMap crossTable = AnyChart.heatMap();
 
         anyChartView.setLicenceKey("b.slimani@esi-sba.dz-b0e90d3d-68aabd2c");
-        ChartCredits cc = riskMap.credits();
+        ChartCredits cc = crossTable.credits();
         cc.text("ELIT-SONALGAZ");
 
 
+
+        /*
         riskMap.stroke("1 #fff");
         riskMap.hovered()
                 .stroke("6 #fff")
@@ -78,52 +87,32 @@ public class CrosstableFragment extends Fragment {
                         "       return '<span style=\"color: #CECECE\">Likelihood: </span>' + this.x + '<br/>' +\n" +
                         "           '<span style=\"color: #CECECE\">Consequence: </span>' + this.y;\n" +
                         "   }");
-
-        List<DataEntry> data = new ArrayList<>();
-        data.add(new CustomHeatDataEntry("Rare", "Insignificant", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Rare", "Minor", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Rare", "Moderate", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Rare", "Major", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Rare", "Extreme", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Unlikely", "Insignificant", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Unlikely", "Minor", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Unlikely", "Moderate", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Unlikely", "Major", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Unlikely", "Extreme", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Possible", "Insignificant", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Possible", "Minor", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Possible", "Moderate", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Possible", "Major", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Possible", "Extreme", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Likely", "Insignificant", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Likely", "Minor", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Likely", "Moderate", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Likely", "Major", 2, "#ef6c00"));
-        data.add(new CustomHeatDataEntry("Likely", "Extreme", 2, "#ef6c00"));
-        data.add(new CustomHeatDataEntry("Almost\\nCertain", "Insignificant", 0, "#90caf9"));
-        data.add(new CustomHeatDataEntry("Almost\\nCertain", "Minor", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Almost\\nCertain", "Moderate", 1, "#ffb74d"));
-        data.add(new CustomHeatDataEntry("Almost\\nCertain", "Major", 2, "#ef6c00"));
-        data.add(new CustomHeatDataEntry("Almost\\nCertain", "Extreme", 3, "#d84315"));
-
-        riskMap.data(data);
+*/
 
 
-        anyChartView.setChart(riskMap);
+        DataManager dataManager = new DataManager();
+
+
+
+       crossTable.width(200);
+
+
+
+        try {
+            crossTable.data(dataManager.parsingToListTable(dataJS,adhocColumns,adhocRows, getContext()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        anyChartView.setChart(crossTable);
 
 
         return view;
 
     }
 
-    private class CustomHeatDataEntry extends HeatDataEntry {
-        CustomHeatDataEntry(String x, String y, Integer heat, String fill) {
-            super(x, y, heat);
-            setValue("fill", fill);
-        }
-    }
 
-   
 
    
 }

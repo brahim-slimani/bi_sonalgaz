@@ -38,7 +38,7 @@ public class PiechartFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
         view = inflater.inflate(R.layout.fragment_piechart, container, false);
 
         final AnyChartView anyChartView = view.findViewById(R.id.any_chart_view);

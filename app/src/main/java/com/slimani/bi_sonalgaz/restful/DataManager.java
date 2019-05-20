@@ -2,9 +2,11 @@ package com.slimani.bi_sonalgaz.restful;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.widget.Toast;
 
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomCrossDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
@@ -295,7 +297,84 @@ public class DataManager {
 
 
 
+    public List<DataEntry> parsingToListTable(JSONArray jsonArray, List<String> columns, List<String> rows, Context ctx) throws JSONException {
+        List<DataEntry> finalList = new ArrayList<DataEntry>();
+        List<DataEntry> list = new ArrayList<DataEntry>();
+        List<DataEntry> list2 = new ArrayList<DataEntry>();
+        List<DataEntry> list3 = new ArrayList<DataEntry>();
 
+        String row = rows.get(0);
+        String valueRows = "";
+        String fill = "#b9b9b9";
+
+        int i = 0;
+        JSONObject jsonObject = new JSONObject();
+        while (i<jsonArray.length()){
+            jsonObject = jsonArray.getJSONObject(i);
+            valueRows = String.valueOf(jsonObject.get(row));
+
+            try{
+                if(columns.size() == 1){
+                    Number numberValue = (Number) jsonObject.get(columns.get(0));
+                    Integer intValue = numberValue.intValue();
+                    list.add(new CustomCrossDataEntry(columns.get(0), valueRows, intValue , fill) );
+                }
+
+                if(columns.size() == 2){
+                    Number numberValue = (Number) jsonObject.get(columns.get(0));
+                    Integer intValue = numberValue.intValue();
+
+                    Number numberValue2 = (Number) jsonObject.get(columns.get(1));
+                    Integer intValue2 = numberValue2.intValue();
+
+                    list.add(new CustomCrossDataEntry(columns.get(0), valueRows, intValue, fill) );
+                    list2.add(new CustomCrossDataEntry(columns.get(1), valueRows, intValue2, fill) );
+
+                }
+
+                if(columns.size() == 3){
+                    Number numberValue = (Number) jsonObject.get(columns.get(0));
+                    Integer intValue = numberValue.intValue();
+
+                    Number numberValue2 = (Number) jsonObject.get(columns.get(1));
+                    Integer intValue2 = numberValue2.intValue();
+
+                    Number numberValue3 = (Number) jsonObject.get(columns.get(2));
+                    Integer intValue3 = numberValue3.intValue();
+
+                    list.add(new CustomCrossDataEntry(columns.get(0), valueRows, intValue, fill) );
+                    list2.add(new CustomCrossDataEntry(columns.get(1), valueRows, intValue2, fill) );
+                    list3.add(new CustomCrossDataEntry(columns.get(2), valueRows, intValue3, fill) );
+
+                }
+
+            }catch (ClassCastException e){
+                Toast.makeText(ctx, "The columns must be in mesurable value !", Toast.LENGTH_SHORT).show();
+            }
+
+
+
+            i++;
+        }
+
+        finalList = list;
+
+
+        if(columns.size() > 1){
+            finalList.addAll(list2);
+
+        }
+
+        if(columns.size() > 2){
+            finalList.addAll(list3);
+
+        }
+
+
+
+        return finalList;
+
+    }
 
 
 
