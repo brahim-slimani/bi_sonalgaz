@@ -44,8 +44,6 @@ public class PiechartFragment extends Fragment {
         final AnyChartView anyChartView = view.findViewById(R.id.any_chart_view);
         anyChartView.setProgressBar(view.findViewById(R.id.progress_bar));
 
-        final Button next_chart = (Button) view.findViewById(R.id.next_piechart_btn);
-        final Button previous_chart = (Button) view.findViewById(R.id.previous_piechart_btn);
 
         Pie pie = AnyChart.pie3d();
 
@@ -68,7 +66,8 @@ public class PiechartFragment extends Fragment {
         pieContext.setColumn(currentColumn);
         try {
             pieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
-        } catch (JSONException e) {
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error when parsing data !", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
 
@@ -95,47 +94,6 @@ public class PiechartFragment extends Fragment {
 
 
 
-        next_chart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int index = adhocColumns.indexOf(currentColumn);
-                if(index+1 < adhocColumns.size()){
-                    currentColumn = adhocColumns.get(index+1);
-                    pieContext.setColumn(currentColumn);
-
-
-                    try {
-
-                        pieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
-
-
-                        pie.data(pieContext.getDataEntryList());
-
-                        pie.labels().position("outside");
-
-                        pie.legend().title().enabled(true);
-                        pie.legend().title()
-                                .text(pieContext.getColumn())
-                                .padding(0d, 0d, 10d, 0d);
-
-                        pie.legend()
-                                .position("center-bottom")
-                                .itemsLayout(LegendLayout.HORIZONTAL)
-                                .align(Align.CENTER);
-
-
-
-                        anyChartView.setChart(pie);
-
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    Toast.makeText(getContext(), "The charts are over", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
 
 
         return view;

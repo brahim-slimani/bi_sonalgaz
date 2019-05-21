@@ -8,7 +8,6 @@ import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomCrossDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomDataEntry;
-import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemMeasure;
@@ -114,10 +113,10 @@ public class DataManager {
       while (i < measureList.size()){
           if(i+1 == measureList.size()){
 
-              measures = measures + measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ") as "+ measureList.get(i).getMeasure();
+              measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure();
           }else {
 
-              measures = measures + measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ") as "+ measureList.get(i).getMeasure() + ", ";
+              measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure() + ", ";
           }
           i++;
       }
@@ -371,11 +370,36 @@ public class DataManager {
         }
 
 
-
         return finalList;
 
     }
 
+
+    public List<String> simpleItemsMeasure(List<ItemMeasure> measureList){
+
+        List<String> list = new ArrayList<>();
+        int i = 0;
+        while (i<measureList.size()){
+            list.add(new String(measureList.get(i).getMeasure()));
+            i++;
+        }
+
+        return list;
+
+    }
+
+    public List<String> simpleItemsDimension(List<ItemDimension> dimensionList){
+
+        List<String> list = new ArrayList<>();
+        int i = 0;
+        while (i<dimensionList.size()){
+            list.add(new String(dimensionList.get(i).getDimension()));
+            i++;
+        }
+
+        return list;
+
+    }
 
 
 

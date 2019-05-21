@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
@@ -89,18 +90,15 @@ public class CrosstableFragment extends Fragment {
                         "   }");
 */
 
-
         DataManager dataManager = new DataManager();
-
-
-
-       crossTable.width(200);
+        crossTable.width(200);
 
 
 
         try {
             crossTable.data(dataManager.parsingToListTable(dataJS,adhocColumns,adhocRows, getContext()));
         } catch (JSONException e) {
+            Toast.makeText(getContext(), "Error when parsing data !", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
 

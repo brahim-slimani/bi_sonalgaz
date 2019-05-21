@@ -55,6 +55,13 @@
                     android:layoutDirection="rtl"
                     android:text="Column bar Chart "/>
 
+                <RadioButton
+                    android:id="@+id/linechart"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layoutDirection="rtl"
+                    android:text="Line Chart              "/>
+
             </RadioGroup>
 
             <Button

@@ -6,6 +6,7 @@ import android.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
@@ -62,7 +63,8 @@ public class ColumnbarFrgament extends Fragment {
         List<DataEntry> data = null;
         try {
             data = dataManager.parsingToListBar(dataJS, adhocColumns, adhocRows);
-        } catch (JSONException e) {
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error when casting rows !", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
 

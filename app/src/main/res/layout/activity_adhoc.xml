@@ -54,7 +54,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Measures"
                                 android:textSize="14dp"
-                                android:textColor="#fff"
+                                android:textColor="@color/colorAccent"
                                 android:padding="8dp"/>
 
                         </LinearLayout>
@@ -88,7 +88,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Dimensions"
                                 android:textSize="14dp"
-                                android:textColor="#fff"
+                                android:textColor="@color/colorAccent"
                                 android:padding="8dp"/>
 
                         </LinearLayout>
@@ -171,10 +171,11 @@
             android:background="@drawable/next"/>
 
         <Button
+            android:id="@+id/clean_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginLeft="30dp"
-            android:background="@drawable/previous"/>
+            android:background="@drawable/broom"/>
 
 
 

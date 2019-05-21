@@ -3,6 +3,7 @@ package com.slimani.bi_sonalgaz.adhoc;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +29,7 @@ import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDTO;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemMeasure;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapter;
+import com.slimani.bi_sonalgaz.home.HomeActivity;
 import com.slimani.bi_sonalgaz.restful.DataManager;
 import com.slimani.bi_sonalgaz.restful.Service;
 
@@ -43,6 +46,7 @@ public class AdhocActivity extends AppCompatActivity {
     public static List<String> adhocRows = new ArrayList<>();
     public static CustomPieContext customPieContext = new CustomPieContext();
     String currentColumn;
+    String typeView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,7 @@ public class AdhocActivity extends AppCompatActivity {
         final Button config_btn = (Button) findViewById(R.id.config_btn);
         final Button save_btn = (Button) findViewById(R.id.save_btn);
         final Button nextResult_btn = (Button) findViewById(R.id.next_result_btn);
+        final Button clean_btn = (Button) findViewById(R.id.clean_btn);
 
         String ms = getIntent().getStringExtra("measures");
         String dm = getIntent().getStringExtra("dimensions");
@@ -75,14 +80,108 @@ public class AdhocActivity extends AppCompatActivity {
         DataManager dataManager = new DataManager();
 
 
+
         //browse and filling measures
         measures_btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 final Dialog dialog = new Dialog(AdhocActivity.this);
                 dialog.setContentView(R.layout.list_measures);
-                dialog.show();
                 Button confirm_btn = dialog.findViewById(R.id.confirm_measures);
+
+
+                final ListView listViewWithCheckbox = (ListView) dialog.findViewById(R.id.list_view_with_checkbox);
+
+                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
+
+                try {
+
+                    List<String> itemsMeasures = dataManager.getItemsMeasures(new JSONArray(ms));
+                    initItemList = getInitViewItemDtoList(itemsMeasures);
+
+                    fillingCheck(initItemList, dataManager.simpleItemsMeasure(listMeasures));
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
+
+                listViewDataAdapter.notifyDataSetChanged();
+
+                listViewWithCheckbox.setAdapter(listViewDataAdapter);
+
+                final List<ItemDTO> itemsChecked = new ArrayList<ItemDTO>();
+
+                dialog.show();
+                listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
+                        Object itemObject = adapterView.getAdapter().getItem(itemIndex);
+                        ItemDTO itemDto = (ItemDTO) itemObject;
+                        CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
+
+                        if(itemDto.isChecked())
+                        {
+                            itemCheckbox.setChecked(false);
+                            itemDto.setChecked(false);
+                            itemsChecked.remove(itemDto);
+                            listMeasures.remove(findMeasure(listMeasures,itemDto.getText()));
+
+
+                        }else
+                        {
+                            itemCheckbox.setChecked(true);
+                            itemDto.setChecked(true);
+                            itemsChecked.add(itemDto);
+
+                        }
+
+                    }
+                });
+
+
+                //listMeasures.clear();
+                confirm_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        measures_content.removeView(measures_label);
+                        //measures_content.removeAllViews();
+
+
+                        int i = 0;
+                        while (i<itemsChecked.size()){
+                            if(itemsChecked.get(i).isChecked()){
+                                listMeasures.add(new ItemMeasure(itemsChecked.get(i).getText(),null));
+                                addMeasureItems(measures_content,itemsChecked.get(i).getText(),listMeasures);
+
+                            }
+                            i++;
+
+                        }
+                        dialog.dismiss();
+                        //Toast.makeText(getApplicationContext(), "Click on the measure to specify the aggregate's function !", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(),String.valueOf(listMeasures.size()), Toast.LENGTH_SHORT).show();
+
+
+                    }
+                });
+
+
+
+            }
+        });
+
+        //browse and filling dimenisons
+        dimensions_btn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                final Dialog dialog = new Dialog(AdhocActivity.this);
+                dialog.setContentView(R.layout.list_dimensions);
+                dialog.show();
+                Button confirm_btn = dialog.findViewById(R.id.confirm_dimensions);
 
 
 
@@ -90,10 +189,8 @@ public class AdhocActivity extends AppCompatActivity {
 
                 List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
                 try {
-
-                    List<String> itemsMeasures = dataManager.getItemsMeasures(new JSONArray(ms));
-                    initItemList = getInitViewItemDtoList(itemsMeasures);
-
+                    List<String> itemsDimensions = dataManager.getItemsDimensions(new JSONArray(dm));
+                    initItemList = getInitViewItemDtoList(itemsDimensions);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -131,23 +228,25 @@ public class AdhocActivity extends AppCompatActivity {
                 });
 
 
-                listMeasures.clear();
+
                 confirm_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        measures_content.removeAllViews();
+                        dimensions_content.removeAllViews();
+                        listDimensions.clear();
 
                         int i = 0;
                         while (i<itemsChecked.size()){
                             if(itemsChecked.get(i).isChecked()){
-                                listMeasures.add(new ItemMeasure(itemsChecked.get(i).getText(),null));
-                                addMeasureItems(measures_content,itemsChecked.get(i).getText(),listMeasures);
+                                listDimensions.add(new ItemDimension(itemsChecked.get(i).getText(),null));
+                                addDimItems(dimensions_content,itemsChecked.get(i).getText(), listDimensions);
                             }
+
                             i++;
 
                         }
                         dialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "Click on the measure to specify the aggregate's function !", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Click on the dimensions to specify their columns !", Toast.LENGTH_LONG).show();
 
 
                     }
@@ -164,13 +263,30 @@ public class AdhocActivity extends AppCompatActivity {
             public void onClick(View v) {
                 final Dialog dialog = new Dialog(AdhocActivity.this);
                 dialog.setContentView(R.layout.popup_config_axes);
-                dialog.show();
+
                 Button confirm_config_btn = dialog.findViewById(R.id.confirm_config);
 
                 final RadioGroup measuresGroup = dialog.findViewById(R.id.measures_group);
-
                 final RadioGroup dimensionGroup = dialog.findViewById(R.id.dimensions_group);
 
+                final RadioButton colMeasure = dialog.findViewById(R.id.columns_measures);
+                final RadioButton rowMeasure = dialog.findViewById(R.id.rows_measures);
+
+                final RadioButton colDimension = dialog.findViewById(R.id.columns_dimensions);
+                final RadioButton rowDimension = dialog.findViewById(R.id.rows_dimensions);
+
+                if(axeMeasureObject.getRole() != null){
+                    if(axeMeasureObject.getRole().equals("columns")){
+                        colMeasure.setChecked(true);
+                        rowDimension.setChecked(true);
+                    }else if(axeMeasureObject.getRole().equals("rows")) {
+                        rowMeasure.setChecked(true);
+                        colDimension.setChecked(true);
+                    }
+                }
+
+
+                dialog.show();
                 confirm_config_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -231,87 +347,7 @@ public class AdhocActivity extends AppCompatActivity {
         });
 
 
-        //browse and filling dimenisons
-        dimensions_btn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                final Dialog dialog = new Dialog(AdhocActivity.this);
-                dialog.setContentView(R.layout.list_dimensions);
-                dialog.show();
-                Button confirm_btn = dialog.findViewById(R.id.confirm_dimensions);
 
-
-
-                final ListView listViewWithCheckbox = (ListView) dialog.findViewById(R.id.list_view_with_checkbox);
-
-                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
-                try {
-                    List<String> itemsDimensions = dataManager.getItemsDimensions(new JSONArray(dm));
-                    initItemList = getInitViewItemDtoList(itemsDimensions);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
-
-                listViewDataAdapter.notifyDataSetChanged();
-
-                listViewWithCheckbox.setAdapter(listViewDataAdapter);
-
-                final List<ItemDTO> itemsChecked = new ArrayList<ItemDTO>();
-                listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
-                        Object itemObject = adapterView.getAdapter().getItem(itemIndex);
-                        ItemDTO itemDto = (ItemDTO) itemObject;
-                        CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
-
-                        if(itemDto.isChecked())
-                        {
-                            itemCheckbox.setChecked(false);
-                            itemDto.setChecked(false);
-                            itemsChecked.remove(itemDto);
-
-
-                        }else
-                        {
-                            itemCheckbox.setChecked(true);
-                            itemDto.setChecked(true);
-                            itemsChecked.add(itemDto);
-
-                        }
-
-                    }
-                });
-
-
-                listDimensions.clear();
-                confirm_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dimensions_content.removeAllViews();
-
-                        int i = 0;
-                        while (i<itemsChecked.size()){
-                            if(itemsChecked.get(i).isChecked()){
-                                listDimensions.add(new ItemDimension(itemsChecked.get(i).getText(),null));
-                                addDimItems(dimensions_content,itemsChecked.get(i).getText(), listDimensions);
-                            }
-
-                            i++;
-
-                        }
-                        dialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "Click on the dimensions to specify their columns !", Toast.LENGTH_LONG).show();
-
-
-                    }
-                });
-
-
-
-            }
-        });
 
 
         //get result per type of view
@@ -349,6 +385,27 @@ public class AdhocActivity extends AppCompatActivity {
                         final Dialog dialog = new Dialog(AdhocActivity.this);
                         dialog.setContentView(R.layout.popup_typechart);
                         dialog.setTitle("Select the type of chart");
+
+                        RadioButton radioCrosstable = dialog.findViewById(R.id.crosstable);
+                        RadioButton radioPie = dialog.findViewById(R.id.piechart);
+                        RadioButton radioColumn = dialog.findViewById(R.id.columnbarchart);
+                        RadioButton radioLine = dialog.findViewById(R.id.linechart);
+
+
+                        if(typeView != null){
+
+                            if(typeView.equals("crosstable")){
+                                radioCrosstable.setChecked(true);
+                            }else  if(typeView.equals("piechart")){
+                                radioPie.setChecked(true);
+                            }else  if(typeView.equals("columnbarchart")){
+                                radioColumn.setChecked(true);
+                            }else  if(typeView.equals("linechart")){
+                                radioLine.setChecked(true);
+                            }
+
+                        }
+
                         dialog.show();
                         Button ok_btn = dialog.findViewById(R.id.confirm_typechart_btn);
                         ok_btn.setOnClickListener(new View.OnClickListener() {
@@ -357,19 +414,19 @@ public class AdhocActivity extends AppCompatActivity {
                                 final RadioGroup chartGroup = dialog.findViewById(R.id.typechart_radiogroup);
                                 int radioButtonID = chartGroup.getCheckedRadioButtonId();
                                 View radioButton = chartGroup.findViewById(radioButtonID);
-                                String typeChart = null;
+
 
                                 dataJS = service.consumesRest(getApplicationContext(),"?query="+cube);
 
                                 try {
-                                    typeChart = getResources().getResourceEntryName(radioButton.getId());
+                                    typeView = getResources().getResourceEntryName(radioButton.getId());
                                     dialog.dismiss();
 
-                                    if(typeChart.equals("crosstable")){
+                                    if(typeView.equals("crosstable")){
                                         nextResult_btn.setEnabled(false);
                                         loadFragment(new CrosstableFragment());
 
-                                    }else if(typeChart.equals("piechart")){
+                                    }else if(typeView.equals("piechart")){
 
                                         try {
                                             currentColumn = adhocColumns.get(0);
@@ -382,11 +439,15 @@ public class AdhocActivity extends AppCompatActivity {
 
                                         loadFragment(new PiechartFragment());
 
-                                    }else if(typeChart.equals("columnbarchart")){
+                                    }else if(typeView.equals("columnbarchart")){
                                         nextResult_btn.setEnabled(false);
                                         loadFragment(new ColumnbarFrgament());
 
-                                    }
+                                    }else if(typeView.equals("linechart")){
+                                    nextResult_btn.setEnabled(false);
+                                    loadFragment(new ColumnbarFrgament());
+
+                                }
 
                                 }catch (NullPointerException n){
                                     Toast.makeText(AdhocActivity.this, "You must check one type chart !", Toast.LENGTH_SHORT).show();
@@ -404,6 +465,7 @@ public class AdhocActivity extends AppCompatActivity {
         });
 
 
+        //save the view as report
         save_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -413,6 +475,9 @@ public class AdhocActivity extends AppCompatActivity {
             }
         });
 
+
+
+        //get the next pie chart as view in the case of more than one column
         nextResult_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -443,8 +508,63 @@ public class AdhocActivity extends AppCompatActivity {
 
 
 
+        //clean the work space
+        clean_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(AdhocActivity.this);
+                alertDialogBuilder.setTitle("Confirmation..?");
+                alertDialogBuilder.setIcon(R.drawable.ask);
+                alertDialogBuilder.setMessage("Are you sure that you wnat to clean the work space ?");
+
+                Service serviceMeas = new Service();
+                DataManager dm = new DataManager();
+                String subURL = "/measures?factTable="+dm.getCurrentCube(getApplicationContext());
+                serviceMeas.consumesRest(getApplicationContext(), subURL);
+
+                Service serviceDm = new Service();
+                String subURLDm = "/dimensions?factTable="+dm.getCurrentCube(getApplicationContext());
+                serviceDm.consumesRest(getApplicationContext(), subURLDm);
 
 
+                alertDialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        arg0.dismiss();
+
+                        Intent intent = new Intent(AdhocActivity.this, AdhocActivity.class);
+                        JSONArray measures = serviceMeas.consumesRest(getApplicationContext(), subURL);
+                        JSONArray dimensions = serviceDm.consumesRest(getApplicationContext(), subURLDm);
+                        intent.putExtra("measures",measures.toString());
+                        intent.putExtra("dimensions",dimensions.toString());
+                        startActivity(intent);
+                    }
+                });
+
+                alertDialogBuilder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        });
+
+
+
+
+
+    }
+
+    //return to MainActivity
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(AdhocActivity.this, HomeActivity.class);
+        startActivity(intent);
     }
 
 
@@ -459,7 +579,7 @@ public class AdhocActivity extends AppCompatActivity {
 
 
 
-    //initialise the CheckedItems
+    //initialise the Items
     private List<ItemDTO> getInitViewItemDtoList(List<String> items) throws JSONException {
 
         List<ItemDTO> ret = new ArrayList<ItemDTO>();
@@ -647,15 +767,15 @@ public class AdhocActivity extends AppCompatActivity {
     public int findMeasure(List<ItemMeasure> list, String measure){
 
         int i=0;
-        int indeex = 0;
+        int index = 0;
         while (i<list.size()){
             if(list.get(i).getMeasure() == measure){
-                indeex = list.indexOf(list.get(i));
+                index = list.indexOf(list.get(i));
             }
             i++;
         }
 
-        return indeex;
+        return index;
     }
 
     //locate dimension item's index
@@ -757,46 +877,29 @@ public class AdhocActivity extends AppCompatActivity {
     //initialise the list with items checked
     public void fillingCheck(List<ItemDTO> list, List<String> items){
 
-        int k = 0;
-        while(k<items.size()){
+        if(items.size()>0){
+            int k = 0;
+            while(k<items.size()){
 
-            int i = 0;
-            while (i<list.size()){
-                if(list.get(i).getText() == items.get(k)){
-                    list.get(i).setChecked(true);
+                int i = 0;
+                while (i<list.size()){
+                    if(list.get(i).getText().equals(items.get(k))){
+                        list.get(i).setChecked(true);
+                    }
+                    i++;
                 }
-                i++;
+                k++;
             }
-            k++;
         }
 
     }
 
-    //get the String items from embedded Measures list
-    public List<String> getStringMeasures(List<ItemMeasure> list){
-        List<String> items = new ArrayList<String>();
 
-        int i = 0;
-        while (i<list.size()){
-            items.add(new String(list.get(i).getMeasure()));
-            i++;
-        }
 
-        return items;
 
-    }
+    //filling colRow form
+    public void fillingColumnRowForm(RadioGroup radioGroup){
 
-    //get the String items from embedded Measures list
-    public List<String> getStringDimension(List<ItemDimension> list){
-        List<String> items = new ArrayList<String>();
-
-        int i = 0;
-        while (i<list.size()){
-            items.add(new String(list.get(i).getDimension()));
-            i++;
-        }
-
-        return items;
 
     }
 
