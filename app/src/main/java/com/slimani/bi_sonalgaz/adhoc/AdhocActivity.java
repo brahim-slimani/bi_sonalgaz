@@ -48,6 +48,7 @@ public class AdhocActivity extends AppCompatActivity {
     String currentColumn;
     String typeView = null;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +79,9 @@ public class AdhocActivity extends AppCompatActivity {
 
 
         DataManager dataManager = new DataManager();
+
+        List<ItemDTO> itemsCheckedMeasure = new ArrayList<ItemDTO>();
+        List<ItemDTO> itemsCheckedDimensions = new ArrayList<ItemDTO>();
 
 
 
@@ -113,7 +117,7 @@ public class AdhocActivity extends AppCompatActivity {
 
                 listViewWithCheckbox.setAdapter(listViewDataAdapter);
 
-                final List<ItemDTO> itemsChecked = new ArrayList<ItemDTO>();
+
 
                 dialog.show();
                 listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -127,43 +131,40 @@ public class AdhocActivity extends AppCompatActivity {
                         {
                             itemCheckbox.setChecked(false);
                             itemDto.setChecked(false);
-                            itemsChecked.remove(itemDto);
-                            listMeasures.remove(findMeasure(listMeasures,itemDto.getText()));
-
+                            cleanCheckedItems(itemsCheckedMeasure,itemDto.getText());
+                            itemsCheckedMeasure.remove(itemDto);
 
                         }else
                         {
                             itemCheckbox.setChecked(true);
                             itemDto.setChecked(true);
-                            itemsChecked.add(itemDto);
+                            itemsCheckedMeasure.add(itemDto);
 
                         }
+
 
                     }
                 });
 
 
-                //listMeasures.clear();
+
                 confirm_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        measures_content.removeView(measures_label);
-                        //measures_content.removeAllViews();
-
+                        measures_content.removeAllViews();
+                        listMeasures.clear();
 
                         int i = 0;
-                        while (i<itemsChecked.size()){
-                            if(itemsChecked.get(i).isChecked()){
-                                listMeasures.add(new ItemMeasure(itemsChecked.get(i).getText(),null));
-                                addMeasureItems(measures_content,itemsChecked.get(i).getText(),listMeasures);
+                        while (i<itemsCheckedMeasure.size()){
 
-                            }
+                                listMeasures.add(new ItemMeasure(itemsCheckedMeasure.get(i).getText(),null));
+                                addMeasureItems(measures_content,itemsCheckedMeasure.get(i).getText(),listMeasures);
+
                             i++;
 
                         }
                         dialog.dismiss();
-                        //Toast.makeText(getApplicationContext(), "Click on the measure to specify the aggregate's function !", Toast.LENGTH_LONG).show();
-                        Toast.makeText(getApplicationContext(),String.valueOf(listMeasures.size()), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Click on the measure to specify the aggregate's function !", Toast.LENGTH_LONG).show();
 
 
                     }
@@ -191,6 +192,9 @@ public class AdhocActivity extends AppCompatActivity {
                 try {
                     List<String> itemsDimensions = dataManager.getItemsDimensions(new JSONArray(dm));
                     initItemList = getInitViewItemDtoList(itemsDimensions);
+
+                    fillingCheck(initItemList, dataManager.simpleItemsDimension(listDimensions));
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -201,7 +205,6 @@ public class AdhocActivity extends AppCompatActivity {
 
                 listViewWithCheckbox.setAdapter(listViewDataAdapter);
 
-                final List<ItemDTO> itemsChecked = new ArrayList<ItemDTO>();
                 listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
@@ -213,14 +216,15 @@ public class AdhocActivity extends AppCompatActivity {
                         {
                             itemCheckbox.setChecked(false);
                             itemDto.setChecked(false);
-                            itemsChecked.remove(itemDto);
+                            cleanCheckedItems(itemsCheckedDimensions, itemDto.getText());
+                            itemsCheckedDimensions.remove(itemDto);
 
 
                         }else
                         {
                             itemCheckbox.setChecked(true);
                             itemDto.setChecked(true);
-                            itemsChecked.add(itemDto);
+                            itemsCheckedDimensions.add(itemDto);
 
                         }
 
@@ -236,11 +240,11 @@ public class AdhocActivity extends AppCompatActivity {
                         listDimensions.clear();
 
                         int i = 0;
-                        while (i<itemsChecked.size()){
-                            if(itemsChecked.get(i).isChecked()){
-                                listDimensions.add(new ItemDimension(itemsChecked.get(i).getText(),null));
-                                addDimItems(dimensions_content,itemsChecked.get(i).getText(), listDimensions);
-                            }
+                        while (i<itemsCheckedDimensions.size()){
+
+                                listDimensions.add(new ItemDimension(itemsCheckedDimensions.get(i).getText(),null));
+                                addDimItems(dimensions_content,itemsCheckedDimensions.get(i).getText(), listDimensions);
+
 
                             i++;
 
@@ -472,6 +476,7 @@ public class AdhocActivity extends AppCompatActivity {
 
                 System.out.println(dataManager.buildQuery(listMeasures,listDimensions,dataManager.getCurrentCube(getApplicationContext())));
 
+                //System.out.println(listDimensions.get(0).getColumns().toString());
             }
         });
 
@@ -669,6 +674,7 @@ public class AdhocActivity extends AppCompatActivity {
         dimItem.setClickable(true);
         Service service = new Service();
         service.consumesRest(getApplicationContext(),"/dimensionColumns?dimension="+dimension);
+        List<ItemDTO> itemsCheckedColumns = new ArrayList<ItemDTO>();
 
         dimItem.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -690,6 +696,11 @@ public class AdhocActivity extends AppCompatActivity {
                     JSONArray jsonArray = service.consumesRest(getApplicationContext(),"/dimensionColumns?dimension="+dimension);
                     List<String> columnsDimensions = dataManager.getColumnsDimension(jsonArray);
                     initItemList = getInitViewItemDtoList(columnsDimensions);
+
+                    List<String> list = dimensionList.get(findDimension(dimensionList, dimension)).getColumns();
+
+                    fillingCheck(initItemList, list);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -700,7 +711,7 @@ public class AdhocActivity extends AppCompatActivity {
 
                 listViewWithCheckbox.setAdapter(listViewDataAdapter);
 
-                final List<ItemDTO> itemsChecked = new ArrayList<ItemDTO>();
+
                 listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
@@ -712,14 +723,15 @@ public class AdhocActivity extends AppCompatActivity {
                         {
                             itemCheckbox.setChecked(false);
                             itemDto.setChecked(false);
-                            itemsChecked.remove(itemDto);
+                            cleanCheckedItems(itemsCheckedColumns, itemDto.getText());
+                            itemsCheckedColumns.remove(itemDto);
 
 
                         }else
                         {
                             itemCheckbox.setChecked(true);
                             itemDto.setChecked(true);
-                            itemsChecked.add(itemDto);
+                            itemsCheckedColumns.add(itemDto);
 
                         }
 
@@ -732,18 +744,16 @@ public class AdhocActivity extends AppCompatActivity {
                     public void onClick(View v) {
 
                         int i = 0;
-                        ArrayList<String> columns = new ArrayList<String>();
-                        while (i<itemsChecked.size()){
-                            if(itemsChecked.get(i).isChecked()){
-                                System.out.println(itemsChecked.get(i).getText());
-                                int index = findDimension(dimensionList,dimension);
-                                columns.add(itemsChecked.get(i).getText());
-                                dimensionList.get(index).setColumns(columns);
-                            }
+                        int index = findDimension(dimensionList,dimension);
+                        ArrayList<String> columns = new ArrayList<>();
+                        while (i<itemsCheckedColumns.size()){
 
+                            columns.add(itemsCheckedColumns.get(i).getText());
+                            System.out.println(columns.get(i));
                             i++;
 
                         }
+                        dimensionList.get(index).setColumns(columns);
                         dialog.dismiss();
 
                     }
@@ -769,7 +779,7 @@ public class AdhocActivity extends AppCompatActivity {
         int i=0;
         int index = 0;
         while (i<list.size()){
-            if(list.get(i).getMeasure() == measure){
+            if(list.get(i).getMeasure().equals(measure)){
                 index = list.indexOf(list.get(i));
             }
             i++;
@@ -782,15 +792,15 @@ public class AdhocActivity extends AppCompatActivity {
     public int findDimension(List<ItemDimension> list, String dimension){
 
         int i=0;
-        int indeex = 0;
+        int index = 0;
         while (i<list.size()){
-            if(list.get(i).getDimension() == dimension){
-                indeex = list.indexOf(list.get(i));
+            if(list.get(i).getDimension().equals(dimension)){
+                index = list.indexOf(list.get(i));
             }
             i++;
         }
 
-        return indeex;
+        return index;
     }
 
     //verify the filling measures
@@ -896,10 +906,54 @@ public class AdhocActivity extends AppCompatActivity {
 
 
 
+    //test if item exists in listMeasure
+    public boolean containsMeasure(List<ItemMeasure> list, String measure){
 
-    //filling colRow form
-    public void fillingColumnRowForm(RadioGroup radioGroup){
+        boolean b = false;
+        int i = 0;
+        while (i<list.size()){
+            if(list.get(i).getMeasure().equals(measure)){
+                b = true;
+            }
 
+            i++;
+        }
+
+        return b;
+
+    }
+
+    public void cleanCheckedItems(List<ItemDTO> list,String item){
+
+        int i = 0;
+        while (i<list.size()){
+            if(list.get(i).getText().equals(item)){
+                list.remove(list.get(i));
+            }
+            i++;
+        }
+    }
+
+    //synchronize listMeasure with items checked
+    public void synchMeasures(List<ItemMeasure> list, List<ItemDTO> items){
+
+        int i = 0;
+        while(i < list.size()){
+
+            int j = 0;
+            boolean b = false;
+            while (j<items.size()){
+                if(list.get(i).getMeasure().equals(items.get(j))){
+                    b = true;
+                }
+                j++;
+            }
+            if(!b){
+                list.remove(i);
+            }
+
+            i++;
+        }
 
     }
 

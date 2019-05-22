@@ -146,7 +146,10 @@ public class DataManager {
       query = "select "+ columns + measures + " from " + joinsOperation + " " + groupBy+ " "+ orderBy + " ;";
 
 
-      return query;
+
+        System.out.println("this are input "+dimensionList.get(0).getColumns());
+
+        return query;
     }
 
     public List<String> getAdhocColumns(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
