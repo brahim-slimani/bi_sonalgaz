@@ -153,6 +153,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginLeft="30dp"
+            android:enabled="false"
             android:background="@drawable/save"/>
 
         <Button

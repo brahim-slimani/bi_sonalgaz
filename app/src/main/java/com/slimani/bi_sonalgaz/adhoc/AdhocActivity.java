@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -32,6 +33,7 @@ import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapter;
 import com.slimani.bi_sonalgaz.home.HomeActivity;
 import com.slimani.bi_sonalgaz.restful.DataManager;
 import com.slimani.bi_sonalgaz.restful.Service;
+import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -119,7 +121,7 @@ public class AdhocActivity extends AppCompatActivity {
 
 
 
-                dialog.show();
+                dialog.show();save_btn.setEnabled(false);
                 listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
@@ -181,7 +183,7 @@ public class AdhocActivity extends AppCompatActivity {
             public void onClick(View v){
                 final Dialog dialog = new Dialog(AdhocActivity.this);
                 dialog.setContentView(R.layout.list_dimensions);
-                dialog.show();
+                dialog.show();save_btn.setEnabled(false);
                 Button confirm_btn = dialog.findViewById(R.id.confirm_dimensions);
 
 
@@ -289,7 +291,7 @@ public class AdhocActivity extends AppCompatActivity {
                     }
                 }
 
-
+                save_btn.setEnabled(false);
                 dialog.show();
                 confirm_config_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -419,6 +421,7 @@ public class AdhocActivity extends AppCompatActivity {
                                 int radioButtonID = chartGroup.getCheckedRadioButtonId();
                                 View radioButton = chartGroup.findViewById(radioButtonID);
 
+                                save_btn.setEnabled(true);
 
                                 dataJS = service.consumesRest(getApplicationContext(),"?query="+cube);
 
@@ -474,9 +477,38 @@ public class AdhocActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                System.out.println(dataManager.buildQuery(listMeasures,listDimensions,dataManager.getCurrentCube(getApplicationContext())));
+                final Dialog dialog = new Dialog(AdhocActivity.this);
+                dialog.setContentView(R.layout.popup_save_report);
 
-                //System.out.println(listDimensions.get(0).getColumns().toString());
+                dialog.show();
+
+                Button save_report_btn = (Button) dialog.findViewById(R.id.save_report_btn);
+                save_report_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EditText title_report = (EditText) dialog.findViewById(R.id.title_report);
+
+                        if(title_report.getText().toString().equals("")){
+                            Toast.makeText(getApplicationContext(),"You must enter title to the report", Toast.LENGTH_SHORT).show();
+                        }else{
+                            String context = dataManager.buildQuery(listMeasures,listDimensions,dataManager.getCurrentCube(getApplicationContext()));
+                            PojoReport pojoReport = new PojoReport(title_report.getText().toString(),
+                                    context,typeView,"admin");
+
+                            Service service = new Service();
+                            service.saveReport(getApplicationContext(),
+                                    "/saveReport",pojoReport);
+
+                            dialog.dismiss();
+                            save_btn.setEnabled(false);
+                            successAlert("The report was saved successfully");
+                        }
+
+                    }
+                });
+
+
+
             }
         });
 
@@ -749,7 +781,6 @@ public class AdhocActivity extends AppCompatActivity {
                         while (i<itemsCheckedColumns.size()){
 
                             columns.add(itemsCheckedColumns.get(i).getText());
-                            System.out.println(columns.get(i));
                             i++;
 
                         }
@@ -868,6 +899,26 @@ public class AdhocActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    public void successAlert(String msg){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Successful !");
+        alertDialogBuilder.setIcon(R.drawable.success);
+        alertDialogBuilder.setMessage(msg);
+
+        alertDialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface arg0, int arg1) {
+                arg0.dismiss();
+
+            }
+        });
+
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
     //validate columns and rows contraints
     public boolean validateAxes(AxeMeasure axeMeasure, AxeDimension axeDimension, List<ItemMeasure> measureList, List<ItemDimension> dimensionList){
         boolean b = true;
@@ -905,24 +956,6 @@ public class AdhocActivity extends AppCompatActivity {
     }
 
 
-
-    //test if item exists in listMeasure
-    public boolean containsMeasure(List<ItemMeasure> list, String measure){
-
-        boolean b = false;
-        int i = 0;
-        while (i<list.size()){
-            if(list.get(i).getMeasure().equals(measure)){
-                b = true;
-            }
-
-            i++;
-        }
-
-        return b;
-
-    }
-
     public void cleanCheckedItems(List<ItemDTO> list,String item){
 
         int i = 0;
@@ -934,28 +967,7 @@ public class AdhocActivity extends AppCompatActivity {
         }
     }
 
-    //synchronize listMeasure with items checked
-    public void synchMeasures(List<ItemMeasure> list, List<ItemDTO> items){
 
-        int i = 0;
-        while(i < list.size()){
-
-            int j = 0;
-            boolean b = false;
-            while (j<items.size()){
-                if(list.get(i).getMeasure().equals(items.get(j))){
-                    b = true;
-                }
-                j++;
-            }
-            if(!b){
-                list.remove(i);
-            }
-
-            i++;
-        }
-
-    }
 
 
 
