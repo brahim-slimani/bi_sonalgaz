@@ -1,20 +1,36 @@
 package com.slimani.bi_sonalgaz.setting;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.slimani.bi_sonalgaz.R;
+import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDTO;
+import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapter;
+import com.slimani.bi_sonalgaz.restful.DataManager;
 import com.slimani.bi_sonalgaz.restful.Service;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -31,6 +47,7 @@ public class UserActivity extends AppCompatActivity {
 
         final Button addUser_btn = (Button) findViewById(R.id.addingUser_btn);
         final Button listUser_btn = (Button) findViewById(R.id.usersList_btn);
+        final Button deletUser_btn = (Button) findViewById(R.id.deleteUser_btn);
 
 
 
@@ -128,7 +145,129 @@ public class UserActivity extends AppCompatActivity {
         listUser_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //System.out.println(service.test("/allReports"));
+
+
+
+
+                final Dialog dialog = new Dialog(UserActivity.this);
+                dialog.setContentView(R.layout.popup_list_users);
+
+                final Button ok_btn = (Button) dialog.findViewById(R.id.listUsers_ok_btn);
+                final ListView usersList = (ListView) dialog.findViewById(R.id.list_view_users);
+
+
+
+
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        Service service = new Service(getApplicationContext());
+                        DataManager dataManager = new DataManager();
+                        List<String> list = dataManager.getItems(service.getUsers("/users"));
+                        UserActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
+
+
+                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1  ,list){
+                                    @Override
+                                    public View getView(int position, View convertView, ViewGroup parent){
+
+                                        View view = super.getView(position, convertView, parent);
+
+                                        TextView tv = (TextView) view.findViewById(android.R.id.text1);
+                                        tv.setTextColor(Color.WHITE);
+                                        return view;
+                                    }
+
+                                };
+                                usersList.setAdapter(adapter);
+
+                            }
+                        });
+
+
+                    }
+                });
+                thread.start();
+
+
+                dialog.show();
+                ok_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+
+            }
+        });
+
+
+
+        deletUser_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final Dialog dialog = new Dialog(UserActivity.this);
+                dialog.setContentView(R.layout.popup_list_users);
+
+                final Button confirm_btn = (Button) dialog.findViewById(R.id.confirm_delete_btn);
+                final ListView usersList = (ListView) dialog.findViewById(R.id.list_view_users);
+
+                DataManager dataManager = new DataManager();
+
+                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
+                try {
+                    List<String> listUsers = dataManager.getItems();
+                    initItemList = getInitViewItemDtoList(listUsers);
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
+
+                listViewDataAdapter.notifyDataSetChanged();
+
+                usersList.setAdapter(listViewDataAdapter);
+
+                List<ItemDTO> itemsChecked = new ArrayList<>();
+
+                usersList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
+                        Object itemObject = adapterView.getAdapter().getItem(itemIndex);
+                        ItemDTO itemDto = (ItemDTO) itemObject;
+                        CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
+
+                        if(itemDto.isChecked())
+                        {
+                            itemCheckbox.setChecked(false);
+                            itemDto.setChecked(false);
+                            itemsChecked.remove(itemDto);
+
+
+                        }else
+                        {
+                            itemCheckbox.setChecked(true);
+                            itemDto.setChecked(true);
+                            itemsChecked.add(itemDto);
+
+                        }
+
+                    }
+                });
+
+
+                confirm_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
 
             }
         });
@@ -153,5 +292,26 @@ public class UserActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
+    }
+
+
+    //initialise the Items
+    private List<ItemDTO> getInitViewItemDtoList(List<String> items) throws JSONException {
+
+        List<ItemDTO> ret = new ArrayList<ItemDTO>();
+
+        for(int i=0;i<items.size();i++)
+        {
+            String itemText = items.get(i);
+
+            ItemDTO dto = new ItemDTO();
+
+            dto.setChecked(false);
+            dto.setText(itemText);
+
+            ret.add(dto);
+        }
+
+        return ret;
     }
 }

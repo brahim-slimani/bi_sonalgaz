@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -176,77 +177,32 @@ public class Service {
 
     }
 
-    public String test(String subURL){
+
+
+    public JSONArray getUsers(String subURL){
 
         String URL = BASE_URL+subURL;
 
-        String response = null;
-
-        JSONArray js = new JSONArray();
-
+        JSONArray response = new JSONArray();
 
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONArray> future = RequestFuture.newFuture();
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET,URL, new JSONArray(),future,future);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future);
         requestQueue.add(request);
 
         try {
-            js = future.get(10,TimeUnit.SECONDS);
+            response = future.get();
         } catch (InterruptedException e) {
-            Log.d(TAG,"interrupted");
+            e.printStackTrace();
         } catch (ExecutionException e) {
-            Log.d(TAG,"execution");
-        } catch (TimeoutException e) {
             e.printStackTrace();
         }
 
+        return response;
 
-        Log.d(TAG,js.toString());
-
-
-        /*
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                URL, json, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                System.out.println("response " +response.toString());
-                try {
-                    responseStatus = response.getString("response");
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-                System.out.println("error : "+error.toString());
-
-            }
-        }) {
-
-
-            @Override
-            public Map getHeaders() throws AuthFailureError {
-                HashMap headers = new HashMap();
-                headers.put("Content-Type", "application/json");
-                return headers;
-            }
-
-
-        };
-
-
-
-        requestQueue.add(jsonObjectRequest);*/
-        return js.toString();
 
     }
-
 
 
 

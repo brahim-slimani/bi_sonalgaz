@@ -405,6 +405,22 @@ public class DataManager {
     }
 
 
+    public List<String> getItems(JSONArray jsonArray){
+        List<String> list = new ArrayList<>();
+
+        int i = 0;
+        while (i<jsonArray.length()){
+            try {
+                list.add(new String(jsonArray.get(i).toString()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            i++;
+        }
+
+        return list;
+    }
+
 
 
 
