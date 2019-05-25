@@ -34,6 +34,7 @@ import com.slimani.bi_sonalgaz.home.HomeActivity;
 import com.slimani.bi_sonalgaz.restful.DataManager;
 import com.slimani.bi_sonalgaz.restful.Service;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
+import com.slimani.bi_sonalgaz.setting.UserActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -495,13 +496,40 @@ public class AdhocActivity extends AppCompatActivity {
                             PojoReport pojoReport = new PojoReport(title_report.getText().toString(),
                                     context,typeView,"admin");
 
-                            Service service = new Service();
-                            service.saveReport(getApplicationContext(),
-                                    "/saveReport",pojoReport);
 
-                            dialog.dismiss();
-                            save_btn.setEnabled(false);
-                            successAlert("The report was saved successfully");
+
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Service service = new Service(getApplicationContext());
+                                    String response = service.saveReport("/saveReport",pojoReport);
+
+                                    if(response.equals("Operation failed, REST issue !")){
+
+
+                                        AdhocActivity.this.runOnUiThread(new Runnable() {
+                                            public void run() {
+                                                Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+
+
+                                    }else if(response.equals("Report created successfully !")){
+
+                                        AdhocActivity.this.runOnUiThread(new Runnable() {
+                                            public void run() {
+                                                dialog.dismiss();
+                                                save_btn.setEnabled(false);
+                                                successAlert("The report was saved successfully");
+                                            }
+                                        });
+
+
+                                    }
+
+                                }
+                            });
+                            thread.start();
                         }
 
                     }
