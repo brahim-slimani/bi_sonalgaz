@@ -25,6 +25,8 @@ import android.widget.Toast;
 import com.slimani.bi_sonalgaz.R;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDTO;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapter;
+import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapterW;
+import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemHolder;
 import com.slimani.bi_sonalgaz.restful.DataManager;
 import com.slimani.bi_sonalgaz.restful.Service;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
@@ -164,7 +166,7 @@ public class UserActivity extends AppCompatActivity {
 
                         Service service = new Service(getApplicationContext());
                         DataManager dataManager = new DataManager();
-                        List<String> list = dataManager.getItems(service.getUsers("/users"));
+                        List<String> list = dataManager.getItems(service.getUsers("/usersRoles"));
                         UserActivity.this.runOnUiThread(new Runnable() {
                             public void run() {
 
@@ -211,28 +213,49 @@ public class UserActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 final Dialog dialog = new Dialog(UserActivity.this);
-                dialog.setContentView(R.layout.popup_list_users);
+                dialog.setContentView(R.layout.popup_delete_users);
 
                 final Button confirm_btn = (Button) dialog.findViewById(R.id.confirm_delete_btn);
                 final ListView usersList = (ListView) dialog.findViewById(R.id.list_view_users);
 
-                DataManager dataManager = new DataManager();
 
-                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
-                try {
-                    List<String> listUsers = dataManager.getItems();
-                    initItemList = getInitViewItemDtoList(listUsers);
+                dialog.show();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        DataManager dataManager = new DataManager();
+                        Service service = new Service(getApplicationContext());
+                        List<String> listUsers = dataManager.getItems(service.getUsers("/users"));
 
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        UserActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
 
-                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
 
-                listViewDataAdapter.notifyDataSetChanged();
+                                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
 
-                usersList.setAdapter(listViewDataAdapter);
+                                try {
+                                    initItemList = getInitViewItemDtoList(listUsers);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                final ListItemAdapterW listViewDataAdapter = new ListItemAdapterW(initItemList, getApplicationContext());
+
+                                listViewDataAdapter.notifyDataSetChanged();
+
+                                usersList.setAdapter(listViewDataAdapter);
+
+                            }
+                        });
+
+
+                    }
+                });
+                thread.start();
+
+
 
                 List<ItemDTO> itemsChecked = new ArrayList<>();
 
@@ -265,6 +288,35 @@ public class UserActivity extends AppCompatActivity {
                 confirm_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
+                        if(itemsChecked.size()<1){
+                            Toast.makeText(getApplicationContext(), "Check user desired to delete",Toast.LENGTH_SHORT).show();
+                        }else{
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    Service service = new Service(getApplicationContext());
+                                    int i =0;
+                                    while (i<itemsChecked.size()){
+                                        service.deleteUser("/deleteUser?username="+itemsChecked.get(i).getText().toString());
+                                        i++;
+                                    }
+
+                                    UserActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            dialog.dismiss();
+                                            successAlert("Users checked was deleted successfully !");
+                                        }
+                                    });
+
+                                }
+                            });
+                            thread.start();
+                        }
+
+
 
                     }
                 });

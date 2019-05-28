@@ -60,6 +60,7 @@
                             android:text="Server IP Adress :      "/>
 
                         <EditText
+                            android:id="@+id/ip_address_field"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:hint="192.168.1.10"/>
@@ -76,6 +77,7 @@
                             android:text="Server Port Number : "/>
 
                         <EditText
+                            android:id="@+id/port_nmuber_field"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:hint="8080"/>
@@ -88,12 +90,12 @@
 
 
                         <Button
+                            android:id="@+id/connectionBtn"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="check the connection"
                             android:paddingHorizontal="20dp"
                             android:layout_marginVertical="20dp"
-
                             android:background="@drawable/mybtn"/>
 
                     </LinearLayout>

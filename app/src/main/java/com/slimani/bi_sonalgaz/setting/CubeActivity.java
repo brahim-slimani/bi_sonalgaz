@@ -11,13 +11,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.slimani.bi_sonalgaz.R;
-import com.slimani.bi_sonalgaz.param.Db_manager;
+import com.slimani.bi_sonalgaz.paramsSQLite.Db_schemaOLAP;
 import com.slimani.bi_sonalgaz.restful.DataManager;
-import com.slimani.bi_sonalgaz.restful.Rest;
+import com.slimani.bi_sonalgaz.restful.Service;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +24,9 @@ import java.util.List;
 
 
 public class CubeActivity extends AppCompatActivity {
-    Db_manager dbm = new Db_manager(this);
+    Db_schemaOLAP dbm = new Db_schemaOLAP(this);
     public Cursor cursor;
     List<String> itemsCube = new ArrayList<String>();
-    JSONArray jsonArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +40,71 @@ public class CubeActivity extends AppCompatActivity {
         DataManager dataManager = new DataManager();
 
 
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Service service = new Service(getApplicationContext());
+                try {
+                    itemsCube = dataManager.getItemsCubes(service.consumesRest("/fact"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                CubeActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(CubeActivity.this, android.R.layout.simple_spinner_dropdown_item, itemsCube);
+                        cubes_spinner.setAdapter(adapter);
+
+                        try {
+
+                            if(init()){
+                                cube_msg.setText(dataManager.getCurrentCube(getApplicationContext())+" : is the current olap cube");
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
+                        confirm_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                try {
+                                    if(init()){
+                                        dbm.refresh(1,cubes_spinner.getSelectedItem().toString());
+                                        cube_msg.setText(dataManager.getCurrentCube(getApplicationContext())+" : is the current olap cube");
+                                        Toast.makeText(getApplicationContext(),"The cube is selected successfully !",Toast.LENGTH_LONG).show();
+                                    }else{
+                                        dbm.initParam(1,cubes_spinner.getSelectedItem().toString());
+                                        cube_msg.setText(dataManager.getCurrentCube(getApplicationContext())+" : is the current olap cube");
+                                        Toast.makeText(getApplicationContext(),"The cube is selected successfully !",Toast.LENGTH_LONG).show();
+                                    }
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+
+
+                            }
+
+
+                        });
+
+                    }
+                });
+
+
+
+            }
+        });
+        thread.start();
+
+
+
+/*
         String facts = getIntent().getStringExtra("facts");
 
         try {
@@ -90,12 +153,10 @@ public class CubeActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-
-
             }
 
 
-        });
+        });*/
 
 
     }

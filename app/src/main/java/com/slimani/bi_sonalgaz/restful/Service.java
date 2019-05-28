@@ -12,32 +12,31 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.slimani.bi_sonalgaz.restful.aesEncryption.AESCrypt;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-import static com.android.volley.VolleyLog.TAG;
 
 
 public class Service {
 
     public Context context;
-    public static String BASE_URL = "http://192.168.1.35:8092/api/olap";
+    //public static String BASE_URL = "http://192.168.1.35:8092/api/olap";
+    public static String csrf = "/api/olap";
     private JSONArray results;
 
-    public JSONArray consumesRest(Context ctx,String subURL){
-        String URL = BASE_URL+subURL;
+    private DataManager dataManager = new DataManager();
+
+    public JSONArray consumesRes(Context ctx,String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(ctx)+":"+dataManager.getCurrentPortNumber(ctx)+csrf;
+
+        String URL = URL_BASE+subURL;
 
         RequestQueue requestQueue = Volley.newRequestQueue(ctx);
         JsonArrayRequest objectRequest = new JsonArrayRequest(Request.Method.GET, URL,
@@ -62,9 +61,79 @@ public class Service {
 
     }
 
+    public JSONArray consumesRest(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        JSONArray response = new JSONArray();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONArray> future = RequestFuture.newFuture();
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future);
+        requestQueue.add(request);
+
+        try {
+            response = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+    }
+
+    public String Token(PojoUser user){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+"/token";
+
+
+        String response = new String();
+
+        AESCrypt aesCrypt = new AESCrypt();
+
+        JSONObject json = new JSONObject();
+        try {
+
+            json.put("userName",user.getUsername());
+            json.put("password",aesCrypt.encrypt(user.getPassword()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL_BASE, json, future, future);
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
+
+
+
     public String saveReport(String subURL, PojoReport report){
 
-        String URL = BASE_URL+subURL;
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
         String response = new String();
 
         JSONObject json = new JSONObject();
@@ -101,8 +170,9 @@ public class Service {
 
     public String saveUser(String subURL, PojoUser user){
 
-        String URL = BASE_URL+subURL;
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
 
+        String URL = URL_BASE+subURL;
         String response = new String();
         
         JSONObject json = new JSONObject();
@@ -181,7 +251,9 @@ public class Service {
 
     public JSONArray getUsers(String subURL){
 
-        String URL = BASE_URL+subURL;
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
 
         JSONArray response = new JSONArray();
 
@@ -204,20 +276,101 @@ public class Service {
 
     }
 
+    public String getRoleUser(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future);
+        requestQueue.add(request);
+
+        try {
+            response = future.get().get("response").toString();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+    }
+
+    public String deleteUser(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, URL, new JSONObject(), future, future);
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
+
+    public String testConnection(String ipAddress, String portNumber){
+
+        String URL = "http://"+ipAddress+":"+portNumber+"/api/connection";
+        System.out.println(URL);
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future);
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
 
 
 
 
-    public Service(Context context, String BASE_URL, JSONArray results) {
+
+    public Service(Context context, JSONArray results) {
         this.context = context;
-        this.BASE_URL = BASE_URL;
         this.results = results;
     }
 
-    public Service(Context context, String BASE_URL) {
-        this.context = context;
-        this.BASE_URL = BASE_URL;
-    }
+
 
     public Service(Context context) {
         this.context = context;
@@ -236,14 +389,6 @@ public class Service {
 
     public void setContext(Context context) {
         this.context = context;
-    }
-
-    public String getBASE_URL() {
-        return BASE_URL;
-    }
-
-    public void setBASE_URL(String BASE_URL) {
-        this.BASE_URL = BASE_URL;
     }
 
 

@@ -25,7 +25,7 @@
 
         <activity
             android:name=".home.HomeActivity" android:windowSoftInputMode="stateHidden"
-            android:label="BI Tool Reporting"
+            android:label="SONELGAZ BI &amp; Reporting"
             android:theme="@style/MyActionBar"/>
 
         <activity

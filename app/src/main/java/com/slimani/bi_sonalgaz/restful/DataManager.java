@@ -2,6 +2,7 @@ package com.slimani.bi_sonalgaz.restful;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import com.anychart.chart.common.dataentry.DataEntry;
@@ -11,7 +12,8 @@ import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemMeasure;
-import com.slimani.bi_sonalgaz.param.Db_manager;
+import com.slimani.bi_sonalgaz.paramsSQLite.Db_schemaOLAP;
+import com.slimani.bi_sonalgaz.paramsSQLite.Db_server;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +28,7 @@ public class DataManager {
     }
 
     public String getCurrentCube(Context context){
-        Db_manager dbm = new Db_manager(context);
+        Db_schemaOLAP dbm = new Db_schemaOLAP(context);
 
         String cube = null;
         Cursor cur = dbm.getAll();
@@ -42,6 +44,39 @@ public class DataManager {
         return cube;
     }
 
+    public String getCurrentIPaddress(Context context){
+        Db_server dbm = new Db_server(context);
+
+        String ip = null;
+        Cursor cur = dbm.getServer();
+        if (cur.moveToFirst()) {
+            do {
+                try {
+                    ip = cur.getString(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } while (cur.moveToNext());
+        }
+        return ip;
+    }
+
+    public String getCurrentPortNumber(Context context){
+        Db_server dbm = new Db_server(context);
+
+        String port = null;
+        Cursor cur = dbm.getServer();
+        if (cur.moveToFirst()) {
+            do {
+                try {
+                    port = cur.getString(2);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } while (cur.moveToNext());
+        }
+        return port;
+    }
 
     public List<String> getItemsCubes(JSONArray jsonArray) throws JSONException {
 
@@ -209,6 +244,50 @@ public class DataManager {
         }
 
         return rows;
+
+    }
+
+    public List<String> filterUnit(List<String> list, String roleUser){
+
+        List<String> levelList = list;
+        if(roleUser.equals("ROLE_AG")){
+            int i = 0;
+
+            while (i<levelList.size()){
+
+              if(levelList.get(i).equals("code_dd")){
+                  levelList.remove(levelList.get(i));
+              }
+              if(levelList.get(i).equals("dd")){
+                  levelList.remove(levelList.get(i));
+              }
+              if(levelList.get(i).equals("code_sd")){
+                  levelList.remove(levelList.get(i));
+              }
+              if(levelList.get(i).equals("sd")){
+                  levelList.remove(levelList.get(i));
+              }
+
+                i++;
+            }
+        }
+
+        if(roleUser.equals("ROLE_DD")){
+            int i = 0;
+            while (i<levelList.size()){
+                if(levelList.get(i).equals("code_sd")){
+                    levelList.remove(levelList.get(i));
+                }
+                if(levelList.get(i).equals("sd")){
+                    levelList.remove(levelList.get(i));
+                }
+                i++;
+            }
+        }
+
+
+
+        return levelList;
 
     }
 

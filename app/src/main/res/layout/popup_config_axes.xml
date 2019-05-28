@@ -56,6 +56,7 @@
                         android:layout_height="wrap_content"
                         android:layoutDirection="rtl"
                         android:layout_marginRight="10dp"
+                        android:buttonTint="@color/colorAccent"
                         android:text="On columns"/>
 
                     <RadioButton
@@ -63,6 +64,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layoutDirection="rtl"
+                        android:buttonTint="@color/colorAccent"
                         android:text="On rows"/>
 
                 </RadioGroup>
@@ -98,6 +100,7 @@
                         android:layout_height="wrap_content"
                         android:layoutDirection="rtl"
                         android:layout_marginRight="10dp"
+                        android:buttonTint="@color/colorAccent"
                         android:text="On columns"/>
 
                     <RadioButton
@@ -105,6 +108,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layoutDirection="rtl"
+                        android:buttonTint="@color/colorAccent"
                         android:text="On rows"/>
 
                 </RadioGroup>

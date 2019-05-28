@@ -155,7 +155,7 @@ public class ColumnbarFrgament extends Fragment {
 
 
         cartesian.animation(true);
-        //cartesian.title("delai");
+        //cartesian.title("");
 
         cartesian.yScale().minimum(0d);
 

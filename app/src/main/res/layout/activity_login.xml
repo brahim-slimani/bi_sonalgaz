@@ -44,7 +44,7 @@
                             android:layout_marginTop="15dp"
                             android:layout_marginBottom="2dp"
                             android:textSize="20dp"
-                            android:text="SONALGAZ REPORTING"/>
+                            android:text="SONALGAZ BI &amp; REPORTING"/>
 
 
 
@@ -133,7 +133,7 @@
                         android:textSize="17dp"
                         android:background="@drawable/mybtn"/>
                     <TextView
-                        android:id="@+id/register_btn"
+                        android:id="@+id/help_login_panel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Need help logging in ?"
