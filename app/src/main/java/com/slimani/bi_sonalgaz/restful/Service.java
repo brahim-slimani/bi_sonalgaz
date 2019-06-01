@@ -1,13 +1,8 @@
 package com.slimani.bi_sonalgaz.restful;
 
 import android.content.Context;
-import android.util.Log;
-
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
@@ -19,47 +14,21 @@ import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
+import static com.slimani.bi_sonalgaz.auth.LoginActivity.token;
 
 
 public class Service {
 
     public Context context;
-    //public static String BASE_URL = "http://192.168.1.35:8092/api/olap";
-    public static String csrf = "/api/olap";
-    private JSONArray results;
+    public static String csrf = "/rest/olap";
 
     private DataManager dataManager = new DataManager();
 
-    public JSONArray consumesRes(Context ctx,String subURL){
 
-        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(ctx)+":"+dataManager.getCurrentPortNumber(ctx)+csrf;
-
-        String URL = URL_BASE+subURL;
-
-        RequestQueue requestQueue = Volley.newRequestQueue(ctx);
-        JsonArrayRequest objectRequest = new JsonArrayRequest(Request.Method.GET, URL,
-                null, new com.android.volley.Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                Log.e("Rest Response",response.toString());
-                results = response;
-            }
-        },
-                new com.android.volley.Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("Rest err",error.toString());
-                    }
-                }
-
-        );
-
-        requestQueue.add(objectRequest);
-        return results;
-
-    }
 
     public JSONArray consumesRest(String subURL){
 
@@ -72,7 +41,16 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONArray> future = RequestFuture.newFuture();
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
         requestQueue.add(request);
 
         try {
@@ -141,6 +119,8 @@ public class Service {
             json.put("title",report.getTitle());
             json.put("context",report.getContext());
             json.put("type",report.getType());
+            json.put("columns",report.getColumns());
+            json.put("rows",report.getRows());
             json.put("username",report.getUsername());
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,7 +129,17 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
         requestQueue.add(request);
 
         try {
@@ -161,6 +151,8 @@ public class Service {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+
 
         return response;
 
@@ -190,7 +182,16 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
         requestQueue.add(request);
         
         try {
@@ -260,7 +261,16 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONArray> future = RequestFuture.newFuture();
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, URL, new JSONArray(), future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
         requestQueue.add(request);
 
         try {
@@ -287,7 +297,19 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+
         requestQueue.add(request);
 
         try {
@@ -315,7 +337,16 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, URL, new JSONObject(), future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, URL, new JSONObject(), future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
         requestQueue.add(request);
 
         try {
@@ -335,7 +366,7 @@ public class Service {
 
     public String testConnection(String ipAddress, String portNumber){
 
-        String URL = "http://"+ipAddress+":"+portNumber+"/api/connection";
+        String URL = "http://"+ipAddress+":"+portNumber+"/rest/connection";
         System.out.println(URL);
 
         String response = new String();
@@ -343,7 +374,18 @@ public class Service {
         RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
         requestQueue.add(request);
 
         try {
@@ -364,24 +406,12 @@ public class Service {
 
 
 
-
-    public Service(Context context, JSONArray results) {
-        this.context = context;
-        this.results = results;
+    public Service() {
     }
-
-
 
     public Service(Context context) {
         this.context = context;
     }
-
-
-
-
-    public Service() {
-    }
-
 
     public Context getContext() {
         return context;
@@ -392,13 +422,6 @@ public class Service {
     }
 
 
-    public JSONArray getResults() {
-        return results;
-    }
-
-    public void setResults(JSONArray results) {
-        this.results = results;
-    }
 
 
 }

@@ -4,12 +4,24 @@ public class PojoReport {
     private String title;
     private String context;
     private String type;
+    private String columns;
+    private String rows;
     private String username;
 
-    public PojoReport(String title, String context, String type, String username) {
+    public PojoReport(String title, String context, String type, String columns, String rows) {
         this.title = title;
         this.context = context;
         this.type = type;
+        this.columns = columns;
+        this.rows = rows;
+    }
+
+    public PojoReport(String title, String context, String type, String columns, String rows, String username) {
+        this.title = title;
+        this.context = context;
+        this.type = type;
+        this.columns = columns;
+        this.rows = rows;
         this.username = username;
     }
 
@@ -43,5 +55,21 @@ public class PojoReport {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getColumns() {
+        return columns;
+    }
+
+    public void setColumns(String columns) {
+        this.columns = columns;
+    }
+
+    public String getRows() {
+        return rows;
+    }
+
+    public void setRows(String rows) {
+        this.rows = rows;
     }
 }

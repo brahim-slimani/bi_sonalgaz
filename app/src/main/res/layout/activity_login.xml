@@ -81,7 +81,7 @@
                             android:id="@+id/username"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="USER ID"
+                            android:hint="USERNAME"
                             android:layout_marginLeft="15dp"
                             android:textColor="#ffffffff"
                             android:textSize="17dp"/>

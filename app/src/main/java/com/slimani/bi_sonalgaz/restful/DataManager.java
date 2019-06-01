@@ -10,10 +10,12 @@ import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomCrossDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomDataEntry;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
+import com.slimani.bi_sonalgaz.adhoc.itemsParam.FilterColumn;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemMeasure;
 import com.slimani.bi_sonalgaz.paramsSQLite.Db_schemaOLAP;
 import com.slimani.bi_sonalgaz.paramsSQLite.Db_server;
+import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -134,57 +136,146 @@ public class DataManager {
 
     }
 
-    public String buildQuery(List<ItemMeasure> measureList , List<ItemDimension> dimensionList, String factTable){
 
-      String query = "";
+    public String buildQuery(List<ItemMeasure> measureList , List<ItemDimension> dimensionList, List<FilterColumn> filterColumnList, String factTable){
 
-      String measures = "";
-      String columns = "";
-      String joinsOperation = factTable;
-      String groupBy = "group by (";
-      String orderBy = "order by (";
+        if(filterColumnList.size()>0){
+            String query = "";
 
-      int i = 0;
-      while (i < measureList.size()){
-          if(i+1 == measureList.size()){
+            String measures = "";
+            String columns = "";
+            String joinsOperation = factTable;
+            String groupBy = "group by (";
+            String whereClause = "where ";
+            String orderBy = "order by (";
 
-              measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure();
-          }else {
+            int i = 0;
+            while (i < measureList.size()){
+                if(i+1 == measureList.size()){
 
-              measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure() + ", ";
-          }
-          i++;
-      }
+                    measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure();
+                }else {
 
-      int j = 0;
-      while(j < dimensionList.size()){
-          int k = 0;
-          while(k < dimensionList.get(j).getColumns().size()){
-              columns = columns + dimensionList.get(j).getColumns().get(k)+" ,";
+                    measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure() + ", ";
+                }
+                i++;
+            }
 
-              if((j+1 == dimensionList.size()) && (k+1 == dimensionList.get(j).getColumns().size()) ){
-                  groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ) ";
-                  orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ) ";
-              }else{
-                  groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ,";
-                  orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ,";
-              }
-              k++;
-          }
+            int j = 0;
+            while(j < dimensionList.size()){
+                int k = 0;
+                while(k < dimensionList.get(j).getColumns().size()){
+                    columns = columns + dimensionList.get(j).getColumns().get(k)+" ,";
 
-          joinsOperation = joinsOperation + " natural join " + dimensionList.get(j).getDimension();
+                    if((j+1 == dimensionList.size()) && (k+1 == dimensionList.get(j).getColumns().size()) ){
+                        groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ) ";
+                        orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ) ";
+                    }else{
+                        groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ,";
+                        orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ,";
+                    }
+                    k++;
+                }
 
-          j++;
-      }
+                joinsOperation = joinsOperation + " natural join " + dimensionList.get(j).getDimension();
+
+                j++;
+            }
+
+            int k = 0;
+            while (k<filterColumnList.size()){
+
+                int s = 0;
+                while (s<filterColumnList.get(k).getRows().size()){
+
+                    if(k+1 == filterColumnList.size()){
+                        if(s+1 == filterColumnList.get(k).getRows().size() ){
+                            whereClause = whereClause + "(" +filterColumnList.get(k).getColumn() + " =  '"+
+                                    filterColumnList.get(k).getRows().get(s) + "' ) ";
+                        }else{
+                            whereClause = whereClause + filterColumnList.get(k).getColumn() + " =  '"+
+                                    filterColumnList.get(k).getRows().get(s) + "'  or ";
+                        }
+                        s++;
+
+                    }else{
+
+                        if(s+1 == filterColumnList.get(k).getRows().size() ){
+                            whereClause = whereClause + "(" +filterColumnList.get(k).getColumn() + " =  '"+
+                                    filterColumnList.get(k).getRows().get(s) + "' ) and ";
+                        }else{
+                            whereClause = whereClause + filterColumnList.get(k).getColumn() + " =  '"+
+                                    filterColumnList.get(k).getRows().get(s) + "'  or ";
+                        }
+                        s++;
+
+                    }
 
 
-      query = "select "+ columns + measures + " from " + joinsOperation + " " + groupBy+ " "+ orderBy + " ;";
+
+                }
+
+                k++;
+            }
+
+
+            query = "select "+ columns + measures + " from " + joinsOperation + " " + whereClause + " " + groupBy+ " "+ orderBy + " ;";
+
+
+            return query;
 
 
 
-        System.out.println("this are input "+dimensionList.get(0).getColumns());
+        }else{
+            String query = "";
 
-        return query;
+            String measures = "";
+            String columns = "";
+            String joinsOperation = factTable;
+            String groupBy = "group by (";
+            String orderBy = "order by (";
+
+            int i = 0;
+            while (i < measureList.size()){
+                if(i+1 == measureList.size()){
+
+                    measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure();
+                }else {
+
+                    measures = measures + "trunc("+ measureList.get(i).getFunction() + "(" + measureList.get(i).getMeasure() + ")) as "+ measureList.get(i).getMeasure() + ", ";
+                }
+                i++;
+            }
+
+            int j = 0;
+            while(j < dimensionList.size()){
+                int k = 0;
+                while(k < dimensionList.get(j).getColumns().size()){
+                    columns = columns + dimensionList.get(j).getColumns().get(k)+" ,";
+
+                    if((j+1 == dimensionList.size()) && (k+1 == dimensionList.get(j).getColumns().size()) ){
+                        groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ) ";
+                        orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ) ";
+                    }else{
+                        groupBy = groupBy + dimensionList.get(j).getColumns().get(k)+" ,";
+                        orderBy = orderBy + dimensionList.get(j).getColumns().get(k)+" ,";
+                    }
+                    k++;
+                }
+
+                joinsOperation = joinsOperation + " natural join " + dimensionList.get(j).getDimension();
+
+                j++;
+            }
+
+
+            query = "select "+ columns + measures + " from " + joinsOperation + " " + groupBy+ " "+ orderBy + " ;";
+
+
+            return query;
+        }
+
+
     }
 
     public List<String> getAdhocColumns(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
@@ -499,6 +590,51 @@ public class DataManager {
 
         return list;
     }
+
+    public List<PojoReport> getReports(JSONArray jsonArray) throws JSONException {
+        List<PojoReport> list = new ArrayList<>();
+
+        int i = 0;
+        while (i<jsonArray.length()){
+            JSONObject object = jsonArray.getJSONObject(i);
+            list.add(new PojoReport(object.getString("title"), object.getString("context"), object.getString("type"),  object.getString("columns"),  object.getString("rows")));
+            i++;
+        }
+
+        return list;
+    }
+
+    public String convertAxes(List<String> list) {
+
+        JSONArray jsonArray = new JSONArray();
+
+        int i = 0;
+        while (i<list.size()){
+            jsonArray.put(list.get(i));
+            i++;
+        }
+
+        return jsonArray.toString();
+
+    }
+
+    public List<String> getAxes(String axe) throws JSONException {
+
+        JSONArray jsonArray = new JSONArray(axe);
+
+        List<String> list = new ArrayList<>();
+
+        int i = 0;
+        while (i<jsonArray.length()){
+            list.add(jsonArray.getString(i));
+            i++;
+        }
+
+        return list;
+
+    }
+
+
 
 
 

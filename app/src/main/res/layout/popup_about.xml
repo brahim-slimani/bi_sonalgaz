@@ -76,18 +76,12 @@
 
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_height="1dp"
-                android:background="@color/colorAccent" />
 
             <Button
                 android:id="@+id/aboutOk_btn"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/colorAccent"
+                android:background="@drawable/mybtn"
                 android:text="OK"
                />
 

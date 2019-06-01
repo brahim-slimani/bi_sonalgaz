@@ -9,20 +9,12 @@ import android.widget.Toast;
 
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
-import com.anychart.chart.common.dataentry.DataEntry;
-import com.anychart.chart.common.dataentry.HeatDataEntry;
 import com.anychart.charts.HeatMap;
 import com.anychart.core.ui.ChartCredits;
-import com.anychart.enums.SelectionMode;
-import com.anychart.graphics.vector.SolidFill;
 import com.slimani.bi_sonalgaz.R;
 import com.slimani.bi_sonalgaz.restful.DataManager;
 
 import org.json.JSONException;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocColumns;
 import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.adhocRows;
 import static com.slimani.bi_sonalgaz.adhoc.AdhocActivity.dataJS;

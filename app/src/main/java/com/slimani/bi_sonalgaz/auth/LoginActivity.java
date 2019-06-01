@@ -29,7 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     public Cursor cursor;
 
     String response = new String();
-    String token = new String();
+    public static String token = new String();
 
     public static String roleUser;
     public static String loggedUser;
@@ -89,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     Intent intent =new Intent(LoginActivity.this, HomeActivity.class);
                                                     startActivity(intent);
                                                 }
-                                            }, 1000);
+                                            }, 2000);
                                         }
                                     }
                                 }

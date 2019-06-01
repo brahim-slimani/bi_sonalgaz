@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.slimani.bi_sonalgaz">
+    package="com.slimani.bi_sonalgaz"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:icon="@drawable/sonelgaz"
+        android:label="SONELGAZ BI"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="false"
+        tools:node="replace"
         android:largeHeap="true">
 
         <activity android:name=".auth.SplashActivity" android:windowSoftInputMode="stateHidden">
@@ -28,8 +30,9 @@
 
         <activity
             android:name=".home.HomeActivity" android:windowSoftInputMode="stateHidden"
+            android:theme="@style/MyActionBar"
             android:label="SONELGAZ BI &amp; Reporting"
-            android:theme="@style/MyActionBar"/>
+            />
 
         <activity
             android:name=".adhoc.AdhocActivity" android:windowSoftInputMode="stateHidden"
@@ -49,6 +52,16 @@
 
         <activity
             android:name=".setting.CubeActivity" android:windowSoftInputMode="stateHidden"
+            />
+
+        <activity
+            android:name=".reports.ReportListActivity" android:windowSoftInputMode="stateHidden"
+            android:theme="@style/MyActionBar"
+            android:label="Reports"
+            />
+
+        <activity
+            android:name=".reports.ReportActivity" android:windowSoftInputMode="stateHidden"
             />
 
 

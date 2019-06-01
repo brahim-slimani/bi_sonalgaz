@@ -14,16 +14,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.slimani.bi_sonalgaz.R;
 import com.slimani.bi_sonalgaz.adhoc.AdhocActivity;
 import com.slimani.bi_sonalgaz.auth.LoginActivity;
-import com.slimani.bi_sonalgaz.restful.DataManager;
-import com.slimani.bi_sonalgaz.restful.Service;
+import com.slimani.bi_sonalgaz.reports.ReportListActivity;
 import com.slimani.bi_sonalgaz.setting.SettingActivity;
-
-import org.json.JSONArray;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -54,6 +50,14 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent =new Intent(HomeActivity.this, SettingActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        report_card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent =new Intent(HomeActivity.this, ReportListActivity.class);
                 startActivity(intent);
             }
         });
