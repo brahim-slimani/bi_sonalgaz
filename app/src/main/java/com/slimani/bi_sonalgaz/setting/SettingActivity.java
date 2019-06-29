@@ -18,9 +18,6 @@ public class SettingActivity extends TabActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
-
-
-
         final TabHost tabHost = (TabHost) findViewById(android.R.id.tabhost);
         TabHost.TabSpec spec;
         Intent intent;

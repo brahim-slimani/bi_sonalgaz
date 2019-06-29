@@ -9,7 +9,6 @@ import android.support.annotation.Dimension;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -383,9 +382,6 @@ public class AdhocActivity extends AppCompatActivity {
                         });
 
 
-
-
-
                         //get result per type of view
                         charts_btn.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -414,9 +410,16 @@ public class AdhocActivity extends AppCompatActivity {
                                         }
 
                                         String cube = dataManager.buildQuery(listMeasures,listDimensions, columnsListFilter, dataManager.getCurrentCube(getApplicationContext()));
+                                        System.out.println("query : "+cube);
 
                                         adhocColumns = dataManager.getAdhocColumns(listMeasures,listDimensions,axeMeasureObject);
                                         adhocRows = dataManager.getAdhocRows(listMeasures,listDimensions,axeMeasureObject);
+
+                                        if(adhocRows.size()>3){
+                                            adhocRows = cleanRows(adhocRows);
+                                        }
+
+
                                         if(adhocRows.size()>1){
                                             adhocRows = adhocRows.subList(0,1);
                                         }
@@ -558,6 +561,16 @@ public class AdhocActivity extends AppCompatActivity {
                                                 @Override
                                                 public void run() {
                                                     Service service = new Service(getApplicationContext());
+                                                    try {
+                                                        String view = dataManager.buildMV("view_"+pojoReport.getTitle(), pojoReport.getContext());
+
+                                                        service.createMV("/createMV?queryMV="+view);
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    pojoReport.setContext("select * from "+ "view_"+pojoReport.getTitle());
+
                                                     String response = service.saveReport("/saveReport",pojoReport);
 
                                                     if(response.equals("Operation failed, REST issue !")){
@@ -565,7 +578,7 @@ public class AdhocActivity extends AppCompatActivity {
 
                                                         AdhocActivity.this.runOnUiThread(new Runnable() {
                                                             public void run() {
-                                                                Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                                                                Toast.makeText(getApplicationContext(), "Operation failed, this title already exists !", Toast.LENGTH_SHORT).show();
                                                             }
                                                         });
 
@@ -1258,7 +1271,7 @@ public class AdhocActivity extends AppCompatActivity {
             b = false;
         };
 
-        if(axeDimension.getRole().equals("rows") && dimensionList.size() > 1){
+        if(axeDimension.getRole().equals("rows") && dimensionList.size() > 1 && dimensionList.size() < 4){
             b = false;
         };
 
@@ -1323,6 +1336,22 @@ public class AdhocActivity extends AppCompatActivity {
 
             i++;
         }
+    }
+
+    public List<String> cleanRows(List<String> list){
+        List<String> l = new ArrayList<>();
+
+        int i = 0;
+        while(i<list.size()){
+            if(list.get(i).equals("libelle_mois")){
+              l.add(new String(list.get(i)));
+            }
+
+            i++;
+        }
+
+       return l;
+
     }
 
 

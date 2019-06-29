@@ -105,6 +105,88 @@ public class Service {
 
     }
 
+    public String createMV(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+        String response = new String();
+
+        JSONObject json = new JSONObject();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return response;
+
+
+    }
+
+    public String syncMV(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+        String response = new String();
+
+        JSONObject json = new JSONObject();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return response;
+
+
+    }
+
 
 
     public String saveReport(String subURL, PojoReport report){
@@ -165,11 +247,12 @@ public class Service {
 
         String URL = URL_BASE+subURL;
         String response = new String();
+        AESCrypt aesCrypt = new AESCrypt();
         
         JSONObject json = new JSONObject();
         try {
             json.put("userName",user.getUsername());
-            json.put("password",user.getPassword());
+            json.put("password",aesCrypt.encrypt(user.getPassword()));
             json.put("role",user.getRole());
         } catch (Exception e) {
             e.printStackTrace();
@@ -191,6 +274,7 @@ public class Service {
                 return params;
             }
         };
+
         requestQueue.add(request);
         
         try {
@@ -325,6 +409,50 @@ public class Service {
 
     }
 
+    public PojoUser getDetailUser(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        PojoUser responseUser = new PojoUser();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+
+        requestQueue.add(request);
+
+        try {
+            responseUser.setUsername(future.get().get("username").toString());
+            responseUser.setPassword(future.get().get("password").toString());
+            responseUser.setRole(future.get().get("role").toString());
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return responseUser;
+
+    }
+
     public String deleteUser(String subURL){
 
         String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
@@ -363,9 +491,48 @@ public class Service {
 
     }
 
+    public String deleteReport(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, URL, new JSONObject(), future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
+
+
     public String testConnection(String ipAddress, String portNumber){
 
-        String URL = "http://"+ipAddress+":"+portNumber+"/rest/connection";
+        String URL = "http://"+ipAddress+":"+portNumber+"/test/connection";
         System.out.println(URL);
 
         String response = new String();
@@ -378,7 +545,6 @@ public class Service {
             @Override
             public HashMap<String, String> getHeaders() {
                 HashMap<String, String> params = new HashMap<>();
-                params.put("Authorisation", token);
                 params.put("Content-Type", "application/json;charset=UTF-8");
                 params.put("Accept", "application/json");
                 return params;

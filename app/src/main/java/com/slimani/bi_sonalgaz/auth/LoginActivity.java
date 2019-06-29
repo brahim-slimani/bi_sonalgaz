@@ -190,13 +190,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public Boolean validateToken(String token){
-        if(token.substring(0,5).equals("Token")){
-            return true;
-        }else
+        try {
+            if(token.substring(0,5).equals("Token")){
+                return true;
+            }else
+                return false;
+        }catch (Exception e){
+            Toast.makeText(getApplicationContext(), "Connection cannot established", Toast.LENGTH_SHORT).show();
             return false;
+        }
+
     }
-
-
 
 
     public boolean initServer() throws JSONException {

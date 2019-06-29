@@ -63,6 +63,7 @@ public class ReportActivity extends AppCompatActivity {
             public void run() {
                 DataManager dataManager = new DataManager();
                 Service service = new Service(getApplicationContext());
+                service.syncMV("/syncMV?view="+"view_"+title);
                 dataReport = service.consumesRest("?query="+context);
 
                 ReportActivity.this.runOnUiThread(new Runnable() {

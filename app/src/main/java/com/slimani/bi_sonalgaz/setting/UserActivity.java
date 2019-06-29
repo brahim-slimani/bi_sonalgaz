@@ -185,6 +185,65 @@ public class UserActivity extends AppCompatActivity {
                                 };
                                 usersList.setAdapter(adapter);
 
+                                usersList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                                    @Override
+                                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                                        Object itemObject = parent.getAdapter().getItem(position);
+                                        String name = itemObject.toString();
+
+                                        final Dialog dialog = new Dialog(UserActivity.this);
+                                        dialog.setContentView(R.layout.popup_detail_user);
+                                        EditText username_field = dialog.findViewById(R.id.username_text);
+                                        EditText role_field = dialog.findViewById(R.id.role_text);
+                                        EditText password_field = dialog.findViewById(R.id.password_text);
+                                        Button ok_detail_btn = dialog.findViewById(R.id.ok_detail_btn);
+
+                                        Thread thread1 = new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Service service = new Service(getApplicationContext());
+                                                PojoUser userDetail = service.getDetailUser("/detailUser?username="+name);
+
+                                                UserActivity.this.runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        username_field.setText(userDetail.getUsername());
+                                                        password_field.setText(userDetail.getPassword());
+                                                        role_field.setText(userDetail.getRole());
+
+
+
+                                                        ok_detail_btn.setOnClickListener(new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View v) {
+                                                                dialog.dismiss();
+                                                            }
+                                                        });
+                                                    }
+                                                });
+
+                                            }
+                                        });
+                                        thread1.start();
+
+                                        dialog.show();
+
+
+
+                                        return true;
+                                    }
+                                });
+
+                                /*
+                                 columnsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                        Object itemObject = parent.getAdapter().getItem(position);
+                                        String column = (String) itemObject.toString();
+
+                                 */
+
                             }
                         });
 

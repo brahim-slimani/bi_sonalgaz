@@ -634,6 +634,16 @@ public class DataManager {
 
     }
 
+    public String buildMV(String name, String query) throws JSONException {
+
+        String view = new String();
+
+        view = "create materialized view "+name+" as "+query;
+
+       return view;
+
+    }
+
 
 
 

@@ -169,7 +169,7 @@
                                 android:gravity="center"
                                 android:padding="5dp"
                                 android:textSize="20dp"
-                                android:text="Ad hoc views"
+                                android:text="Ad hoc analysis"
                                 android:textColor="@color/colorAccent"
                                 />
 
