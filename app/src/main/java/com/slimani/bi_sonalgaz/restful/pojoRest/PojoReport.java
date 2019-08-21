@@ -25,6 +25,12 @@ public class PojoReport {
         this.username = username;
     }
 
+    public PojoReport(String title, String context, String type) {
+        this.title = title;
+        this.context = context;
+        this.type = type;
+    }
+
     public String getTitle() {
         return title;
     }

@@ -28,6 +28,7 @@ import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapter;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemAdapterW;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ListItemHolder;
 import com.slimani.bi_sonalgaz.restful.DataManager;
+import com.slimani.bi_sonalgaz.restful.SendingMail;
 import com.slimani.bi_sonalgaz.restful.Service;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
 
@@ -73,6 +74,7 @@ public class UserActivity extends AppCompatActivity {
                 final Spinner roles_list = (Spinner) dialog.findViewById(R.id.roles_spinner);
                 final EditText username = (EditText) dialog.findViewById(R.id.username_text);
                 final EditText password = (EditText) dialog.findViewById(R.id.password_text);
+                final EditText email = (EditText) dialog.findViewById(R.id.mail_text);
 
                 roles_list.setAdapter(adapter);
 
@@ -89,7 +91,7 @@ public class UserActivity extends AppCompatActivity {
                             PojoUser user;
 
                             user = new PojoUser(username.getText().toString(),
-                                    password.getText().toString(),roles_list.getSelectedItem().toString());
+                                    password.getText().toString(),roles_list.getSelectedItem().toString(), email.getText().toString());
 
 
                             Thread thread = new Thread(new Runnable() {
@@ -111,8 +113,13 @@ public class UserActivity extends AppCompatActivity {
 
                                     }else if(response.equals("User registred successfully !")){
 
+
                                         UserActivity.this.runOnUiThread(new Runnable() {
                                             public void run() {
+                                                //SendingMail sm = new SendingMail();
+                                                //sm.send(user.getEmail(), "Acount Sonelgaz BI Tool", "Username : "+user.getUsername()+ "   Password : "+user.getPassword());
+
+
                                                 dialog.dismiss();
                                                 successAlert(response);
                                             }
@@ -147,8 +154,6 @@ public class UserActivity extends AppCompatActivity {
         listUser_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
 
 
                 final Dialog dialog = new Dialog(UserActivity.this);

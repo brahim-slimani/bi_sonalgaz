@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.slimani.bi_sonalgaz.R;
+import com.slimani.bi_sonalgaz.auth.forgetPassword.ForgetPasswordActivity;
 import com.slimani.bi_sonalgaz.home.HomeActivity;
 import com.slimani.bi_sonalgaz.paramsSQLite.Db_server;
 import com.slimani.bi_sonalgaz.restful.DataManager;
@@ -44,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
         final EditText password_field = (EditText) findViewById(R.id.password);
         final Button login_btn = (Button) findViewById(R.id.login_submit_btn);
         final TextView help_login = (TextView) findViewById(R.id.help_login_panel);
+        final TextView forgoet_password = findViewById(R.id.forget_password_panel);
 
 
 
@@ -146,6 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                                     LoginActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+
                                             if(response.equals("connection successful")){
                                                 dialog.dismiss();
                                                 Toast.makeText(getApplicationContext(), "Connection was established successfully !", Toast.LENGTH_SHORT).show();
@@ -176,6 +179,14 @@ public class LoginActivity extends AppCompatActivity {
                 });
 
 
+            }
+        });
+
+        forgoet_password.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this, ForgetPasswordActivity.class);
+                startActivity(intent);
             }
         });
 

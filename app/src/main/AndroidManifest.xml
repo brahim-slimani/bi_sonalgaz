@@ -14,7 +14,9 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="false"
         tools:node="replace"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:usesCleartextTraffic="true"
+        >
 
         <activity android:name=".auth.SplashActivity" android:windowSoftInputMode="stateHidden">
             <intent-filter>
@@ -64,6 +66,21 @@
             android:name=".reports.ReportActivity" android:windowSoftInputMode="stateHidden"
             />
 
+        <activity
+            android:name=".dashboards.DashboardListActivity"
+            android:label="Dashboards"
+            android:theme="@style/MyActionBar"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".dashboards.DashboardActivity"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".dashboards.SaveDashboardActivity"
+            android:label="Add New Dashboards"
+            android:theme="@style/MyActionBar"
+            android:windowSoftInputMode="stateHidden" />
+
+        <activity android:name=".auth.forgetPassword.ForgetPasswordActivity" android:windowSoftInputMode="stateHidden"></activity>
 
     </application>
 

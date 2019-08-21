@@ -8,6 +8,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
 import com.slimani.bi_sonalgaz.restful.aesEncryption.AESCrypt;
+import com.slimani.bi_sonalgaz.restful.pojoRest.PojoDashboard;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoUser;
 
@@ -25,6 +26,7 @@ public class Service {
 
     public Context context;
     public static String csrf = "/rest/olap";
+    public static String csrf2 = "/user";
 
     private DataManager dataManager = new DataManager();
 
@@ -251,9 +253,12 @@ public class Service {
         
         JSONObject json = new JSONObject();
         try {
+
             json.put("userName",user.getUsername());
             json.put("password",aesCrypt.encrypt(user.getPassword()));
             json.put("role",user.getRole());
+            json.put("email", user.getEmail());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -409,6 +414,8 @@ public class Service {
 
     }
 
+
+
     public PojoUser getDetailUser(String subURL){
 
         String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
@@ -529,6 +536,45 @@ public class Service {
 
     }
 
+    public String deleteDashboard(String subURL){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(this.getContext())+":"+dataManager.getCurrentPortNumber(this.getContext())+csrf;
+
+        String URL = URL_BASE+subURL;
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, URL, new JSONObject(), future, future){
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
+
+
 
     public String testConnection(String ipAddress, String portNumber){
 
@@ -537,7 +583,7 @@ public class Service {
 
         String response = new String();
 
-        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
@@ -568,7 +614,267 @@ public class Service {
 
     }
 
+    public String getConnection(String ipAddress, String portNumber, Context ctx){
 
+        String URL = "http://"+ipAddress+":"+portNumber+"/test/connection";
+        System.out.println(URL);
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(ctx);
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+
+    }
+
+    public String checkEmail(String subURL, Context ctx){
+
+        String URL_BASE = "http://"+dataManager.getCurrentIPaddress(ctx)+":"+dataManager.getCurrentPortNumber(ctx)+csrf2;
+
+        String URL = URL_BASE+subURL;
+
+        String response = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(ctx);
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future){
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return response;
+
+    }
+
+    public String saveDashboard(String subURL, PojoDashboard dashboard) {
+
+        String URL_BASE = "http://" + dataManager.getCurrentIPaddress(this.getContext()) + ":" + dataManager.getCurrentPortNumber(this.getContext()) + csrf;
+
+        String URL = URL_BASE + subURL;
+        String response = new String();
+
+        JSONObject json = new JSONObject();
+        JSONArray reportsJsonArray = new JSONArray(dashboard.getReports());
+        try {
+            json.put("title", dashboard.getTitle());
+            json.put("reportsString", dashboard.getReportsString());
+            json.put("username", dashboard.getUsername());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future) {
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return response;
+
+
+    }
+
+    public String forgotPassword(String subURL, PojoUser user) {
+
+        String URL_BASE = "http://" + dataManager.getCurrentIPaddress(this.getContext()) + ":" + dataManager.getCurrentPortNumber(this.getContext()) + csrf2;
+
+        AESCrypt aesCrypt = new AESCrypt();
+        String URL = URL_BASE + subURL;
+        String response = new String();
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("password",aesCrypt.encrypt(user.getPassword()));
+            json.put("mail", user.getEmail());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future) {
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return response;
+
+
+    }
+
+    public String getEmail(String subURL) throws JSONException {
+        String URL_BASE = "http://" + dataManager.getCurrentIPaddress(this.getContext()) + ":" + dataManager.getCurrentPortNumber(this.getContext()) + csrf;
+        String URL = URL_BASE + subURL;
+        String email = new String();
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URL, new JSONObject(), future, future) {
+
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+
+        requestQueue.add(request);
+
+        try {
+            email = future.get().get("email").toString();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return email;
+
+    }
+
+    public String updateUser(String subURL, PojoUser user) {
+
+        String URL_BASE = "http://" + dataManager.getCurrentIPaddress(this.getContext()) + ":" + dataManager.getCurrentPortNumber(this.getContext()) + csrf;
+
+        String URL = URL_BASE + subURL;
+        String response = new String();
+        AESCrypt aesCrypt = new AESCrypt();
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("username", user.getUsername());
+            json.put("password", aesCrypt.encrypt(user.getPassword()));
+            json.put("mail", user.getEmail());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this.getContext());
+
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URL, json, future, future) {
+            @Override
+            public HashMap<String, String> getHeaders() {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorisation", token);
+                params.put("Content-Type", "application/json;charset=UTF-8");
+                params.put("Accept", "application/json");
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
+
+        try {
+            response = future.get().getString("response");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return response;
+
+
+    }
 
 
     public Service() {

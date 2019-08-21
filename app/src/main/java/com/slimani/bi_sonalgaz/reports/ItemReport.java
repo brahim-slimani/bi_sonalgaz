@@ -6,12 +6,14 @@ public class ItemReport {
 
 
 
+    private Long id;
     private String title;
     private int imageId;
     private String context;
     private String type;
     private List<String> columns;
     private List<String> rows;
+    private boolean checked;
 
     public ItemReport(String title, int imageId) {
         this.title = title;
@@ -84,5 +86,21 @@ public class ItemReport {
 
     public void setRows(List<String> rows) {
         this.rows = rows;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
     }
 }

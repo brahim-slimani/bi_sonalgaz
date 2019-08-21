@@ -15,6 +15,7 @@ import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemMeasure;
 import com.slimani.bi_sonalgaz.paramsSQLite.Db_schemaOLAP;
 import com.slimani.bi_sonalgaz.paramsSQLite.Db_server;
+import com.slimani.bi_sonalgaz.restful.pojoRest.PojoDashboard;
 import com.slimani.bi_sonalgaz.restful.pojoRest.PojoReport;
 
 import org.json.JSONArray;
@@ -32,7 +33,7 @@ public class DataManager {
     public String getCurrentCube(Context context){
         Db_schemaOLAP dbm = new Db_schemaOLAP(context);
 
-        String cube = null;
+        String cube = new String();
         Cursor cur = dbm.getAll();
         if (cur.moveToFirst()) {
             do {
@@ -49,7 +50,7 @@ public class DataManager {
     public String getCurrentIPaddress(Context context){
         Db_server dbm = new Db_server(context);
 
-        String ip = null;
+        String ip = new String();
         Cursor cur = dbm.getServer();
         if (cur.moveToFirst()) {
             do {
@@ -66,7 +67,7 @@ public class DataManager {
     public String getCurrentPortNumber(Context context){
         Db_server dbm = new Db_server(context);
 
-        String port = null;
+        String port = new String();
         Cursor cur = dbm.getServer();
         if (cur.moveToFirst()) {
             do {
@@ -215,6 +216,12 @@ public class DataManager {
 
                 }
 
+                if(!filterColumnList.get(k).getDimension().equals(dimensionList.get(0).getDimension())){
+                    joinsOperation = joinsOperation + " natural join " + filterColumnList.get(k).getDimension();
+                }
+
+
+
                 k++;
             }
 
@@ -268,7 +275,6 @@ public class DataManager {
                 j++;
             }
 
-
             query = "select "+ columns + measures + " from " + joinsOperation + " " + groupBy+ " "+ orderBy + " ;";
 
 
@@ -278,47 +284,25 @@ public class DataManager {
 
     }
 
-    public List<String> getAdhocColumns(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
-                                        AxeMeasure axeMeasure){
+
+
+    public List<String> getAdhocColumns(List<ItemMeasure> measureList){
         List<String> columns = new ArrayList<>();
 
-        if(axeMeasure.getRole().equals("columns")){
-            int i = 0;
-            while (i < measureList.size()){
-                columns.add(new String(measureList.get(i).getMeasure()));
-                i++;
-            }
-        }else if(axeMeasure.getRole().equals("rows")){
-            int j = 0;
-            while(j < dimensionList.size()){
-                int k = 0;
-                while(k < dimensionList.get(j).getColumns().size()){
-
-                    columns.add(new String(dimensionList.get(j).getColumns().get(k)));
-
-                    k++;
-                }
-
-                j++;
-            }
-
+        int i = 0;
+        while (i < measureList.size()){
+            columns.add(new String(measureList.get(i).getMeasure()));
+            i++;
         }
 
         return columns;
 
     }
 
-    public List<String> getAdhocRows(List<ItemMeasure> measureList, List<ItemDimension> dimensionList,
-                                        AxeMeasure axeMeasure){
+    public List<String> getAdhocRows(List<ItemDimension> dimensionList){
         List<String> rows = new ArrayList<>();
 
-        if(axeMeasure.getRole().equals("rows")){
-            int i = 0;
-            while (i < measureList.size()){
-                rows.add(new String(measureList.get(i).getMeasure()));
-                i++;
-            }
-        }else if(axeMeasure.getRole().equals("columns")){
+
             int j = 0;
             while(j < dimensionList.size()){
                 int k = 0;
@@ -332,7 +316,6 @@ public class DataManager {
                 j++;
             }
 
-        }
 
         return rows;
 
@@ -643,6 +626,34 @@ public class DataManager {
        return view;
 
     }
+
+    public List<PojoReport> getReportsByDashboard(JSONArray jsonArray) throws JSONException {
+        List<PojoReport> reportsList = new ArrayList<>();
+
+        int i = 0;
+        while (i < jsonArray.length()) {
+            JSONObject object = jsonArray.getJSONObject(i);
+            reportsList.add(new PojoReport(object.getString("title"), object.getString("context"), object.getString("type"), object.getString("columns"), object.getString("rows"), object.getString("username")));
+            i++;
+        }
+
+        return reportsList;
+    }
+
+
+    public List<PojoDashboard> getDashboards(JSONArray jsonArray) throws JSONException {
+        List<PojoDashboard> list = new ArrayList<>();
+
+        int i = 0;
+        while (i < jsonArray.length()) {
+            JSONObject object = jsonArray.getJSONObject(i);
+            list.add(new PojoDashboard(object.getLong("id"), object.getString("title")));
+            i++;
+        }
+
+        return list;
+    }
+
 
 
 

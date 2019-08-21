@@ -21,10 +21,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Create new user : "/>
+                android:text="Save Dashboard : "/>
 
             <View
-                android:layout_width="260dp"
+                android:layout_width="300dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
@@ -38,59 +38,32 @@
                 android:layout_marginTop="10dp"
                 android:orientation="vertical">
 
-
-                <EditText
-                    android:id="@+id/username_text"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="10dp"
-                    android:hint="User's name"
-                    android:backgroundTint="@color/colorAccent"
-                    android:layout_height="wrap_content" />
-
-                <EditText
-                    android:id="@+id/password_text"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="10dp"
-                    android:hint="User's password"
-                    android:backgroundTint="@color/colorAccent"
-                    android:layout_height="wrap_content" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16dp"
-                    android:layout_marginTop="25dp"
-                    android:text="Select a role to the user : "/>
+                    android:layout_marginBottom="5dp"
+                    android:text="Give title to the dashboard : "/>
 
-                <Spinner
-                    android:id="@+id/roles_spinner"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_height="wrap_content"
-                    android:spinnerMode="dialog"
-                    />
-
-                <EditText
-                    android:id="@+id/mail_text"
-                    android:layout_width="200dp"
-                    android:layout_marginTop="10dp"
-                    android:hint="User's email"
-                    android:inputType="textEmailAddress"
-                    android:backgroundTint="@color/colorAccent"
-                    android:layout_height="wrap_content" />
-
+               <EditText
+                   android:id="@+id/title_dashboard"
+                   android:layout_width="200dp"
+                   android:layout_marginTop="10dp"
+                   android:hint="Title of Dashboard"
+                   android:backgroundTint="@color/colorAccent"
+                   android:layout_height="wrap_content" />
 
             </LinearLayout>
 
 
 
             <Button
-                android:id="@+id/save_user_btn"
+                android:id="@+id/save_dashboard_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
                 android:paddingHorizontal="15dp"
-                android:text="SAVE THE USER"
+                android:text="SAVE THE DASHBOARD"
                 android:background="@drawable/mybtn"/>
 
         </LinearLayout>

@@ -54,6 +54,22 @@
                     android:buttonTint="@color/colorAccent"
                     android:text="Averege (avg)                "/>
 
+                <RadioButton
+                    android:id="@+id/max"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layoutDirection="rtl"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="Maximum (max)            "/>
+
+                <RadioButton
+                    android:id="@+id/min"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layoutDirection="rtl"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="Minimum (min)              "/>
+
             </RadioGroup>
 
             <Button

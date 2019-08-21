@@ -70,6 +70,7 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
                         while (i<reports.size()){
 
                             try {
+
                                 ItemReport itemReport = new ItemReport();
                                 itemReport.setTitle(reports.get(i).getTitle());
                                 itemReport.setContext(reports.get(i).getContext());
@@ -123,7 +124,7 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
                                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ReportListActivity.this);
                                 alertDialogBuilder.setTitle("Deleting..?");
                                 alertDialogBuilder.setIcon(R.drawable.delete);
-                                alertDialogBuilder.setMessage("Are you sure that you want to delete this report ?");
+                                alertDialogBuilder.setMessage("Are you sure you want to delete this report ? if you delete this one and it belongs to a dashboard this last it will also be deleted");
 
 
                                 alertDialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
@@ -138,6 +139,7 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
                                                 DataManager dataManager = new DataManager();
                                                 Service service = new Service(getApplicationContext());
                                                 service.deleteReport("/deleteReport?title="+itemReport.getTitle());
+
 
                                                 try {
                                                     reports = dataManager.getReports(service.consumesRest("/reports?username="+loggedUser));

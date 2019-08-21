@@ -52,7 +52,7 @@
                                 android:id="@+id/label_measures"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Measures"
+                                android:text="Items in Columns"
                                 android:textSize="14dp"
                                 android:textColor="@color/colorAccent"
                                 android:padding="8dp"/>
@@ -86,7 +86,7 @@
                                 android:id="@+id/label_dimensions"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Dimensions"
+                                android:text="Item in Rows"
                                 android:textSize="14dp"
                                 android:textColor="@color/colorAccent"
                                 android:padding="8dp"/>
@@ -134,19 +134,20 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/config_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@drawable/axis"/>
 
         <Button
             android:id="@+id/charts_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:background="@drawable/typechart"/>
+
+        <Button
+            android:id="@+id/next_result_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginLeft="30dp"
             android:enabled="false"
-            android:background="@drawable/typechart"/>
+            android:background="@drawable/next"/>
 
         <Button
             android:id="@+id/save_btn"
@@ -164,13 +165,7 @@
             android:enabled="false"
             android:background="@drawable/funnel"/>
 
-        <Button
-            android:id="@+id/next_result_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginLeft="30dp"
-            android:enabled="false"
-            android:background="@drawable/next"/>
+
 
         <Button
             android:id="@+id/clean_btn"
@@ -178,8 +173,6 @@
             android:layout_height="30dp"
             android:layout_marginLeft="30dp"
             android:background="@drawable/broom"/>
-
-
 
     </LinearLayout>
 </RelativeLayout>

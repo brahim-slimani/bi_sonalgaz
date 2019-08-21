@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Dimension;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -27,8 +26,6 @@ import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CrosstableFragment;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.CustomPieContext;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.LineChartFragment;
 import com.slimani.bi_sonalgaz.adhoc.chartsFragments.PiechartFragment;
-import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeDimension;
-import com.slimani.bi_sonalgaz.adhoc.itemsParam.AxeMeasure;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.FilterColumn;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDTO;
 import com.slimani.bi_sonalgaz.adhoc.itemsParam.ItemDimension;
@@ -63,6 +60,8 @@ public class AdhocActivity extends AppCompatActivity {
 
     FilterColumn filterColumn = new FilterColumn();
 
+    String dimension = new String();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +78,6 @@ public class AdhocActivity extends AppCompatActivity {
 
 
         final Button charts_btn = (Button) findViewById(R.id.charts_btn);
-        final Button config_btn = (Button) findViewById(R.id.config_btn);
         final Button save_btn = (Button) findViewById(R.id.save_btn);
         final Button nextResult_btn = (Button) findViewById(R.id.next_result_btn);
         final Button clean_btn = (Button) findViewById(R.id.clean_btn);
@@ -88,9 +86,6 @@ public class AdhocActivity extends AppCompatActivity {
 
         ArrayList<ItemMeasure> listMeasures = new ArrayList<ItemMeasure>();
         ArrayList<ItemDimension> listDimensions = new ArrayList<ItemDimension>();
-        AxeMeasure axeMeasureObject = new AxeMeasure();
-        AxeDimension axeDimensionObject = new AxeDimension();
-
 
         DataManager dataManager = new DataManager();
 
@@ -98,6 +93,7 @@ public class AdhocActivity extends AppCompatActivity {
         List<ItemDTO> itemsCheckedDimensions = new ArrayList<ItemDTO>();
 
         List<FilterColumn> columnsListFilter = new ArrayList<>();
+
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -108,15 +104,16 @@ public class AdhocActivity extends AppCompatActivity {
                 JSONArray msData = service.consumesRest("/measures?factTable="+dataManager.getCurrentCube(getApplicationContext()));
                 JSONArray dmData = service.consumesRest("/dimensions?factTable="+dataManager.getCurrentCube(getApplicationContext()));
 
-
                 AdhocActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
-                        //browse and filling measures
-                        measures_btn.setOnClickListener(new View.OnClickListener(){
+
+                        //filling columns
+                        measures_btn.setOnClickListener(new View.OnClickListener() {
                             @Override
-                            public void onClick(View v){
+                            public void onClick(View v) {
+
                                 final Dialog dialog = new Dialog(AdhocActivity.this);
                                 dialog.setContentView(R.layout.list_measures);
                                 Button confirm_btn = dialog.findViewById(R.id.confirm_measures);
@@ -146,8 +143,9 @@ public class AdhocActivity extends AppCompatActivity {
                                 listViewWithCheckbox.setAdapter(listViewDataAdapter);
 
 
-
                                 dialog.show();save_btn.setEnabled(false);
+
+
                                 listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                     @Override
                                     public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
@@ -161,6 +159,7 @@ public class AdhocActivity extends AppCompatActivity {
                                             itemDto.setChecked(false);
                                             cleanCheckedItems(itemsCheckedMeasure,itemDto.getText());
                                             itemsCheckedMeasure.remove(itemDto);
+                                            removeMeasure(itemDto.getText(), listMeasures);
 
                                         }else
                                         {
@@ -168,42 +167,83 @@ public class AdhocActivity extends AppCompatActivity {
                                             itemDto.setChecked(true);
                                             itemsCheckedMeasure.add(itemDto);
 
-                                        }
+                                            //check the aggregate function
+                                            final Dialog dialog = new Dialog(AdhocActivity.this);
+                                            dialog.setContentView(R.layout.popup_aggregate_measure);
+                                            Button ok_btn = dialog.findViewById(R.id.confirm_aggregate_btn);
 
+                                            dialog.show();
+
+                                            ok_btn.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+
+
+                                                    final RadioGroup functionGroup = dialog.findViewById(R.id.aggregate_radiogroup);
+                                                    int radioButtonID = functionGroup.getCheckedRadioButtonId();
+                                                    View radioButton = functionGroup.findViewById(radioButtonID);
+                                                    String typeFunction = null;
+                                                    try {
+                                                        typeFunction = getResources().getResourceEntryName(radioButton.getId());
+                                                        dialog.dismiss();
+
+                                                        if(typeFunction.equals("sum")){
+
+                                                            listMeasures.add(new ItemMeasure(itemDto.getText(), "sum"));
+
+                                                        }else if(typeFunction.equals("avg")){
+
+                                                            listMeasures.add(new ItemMeasure(itemDto.getText(), "avg"));
+
+
+                                                        }else if(typeFunction.equals("min")){
+
+                                                            listMeasures.add(new ItemMeasure(itemDto.getText(), "min"));
+
+
+                                                        }else if(typeFunction.equals("max")){
+
+                                                            listMeasures.add(new ItemMeasure(itemDto.getText(), "max"));
+
+                                                        }
+
+
+
+                                                    }catch (NullPointerException n){
+                                                        Toast.makeText(AdhocActivity.this, "You must check one type of function !", Toast.LENGTH_SHORT).show();
+                                                    }
+
+                                                }
+                                            });
+
+
+                                        }
 
                                     }
                                 });
 
 
-
+                                //confirming measures
                                 confirm_btn.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
                                         measures_content.removeAllViews();
-                                        listMeasures.clear();
 
-                                        int i = 0;
-                                        while (i<itemsCheckedMeasure.size()){
+                                        addMeasureItems(measures_content,listMeasures);
 
-                                            listMeasures.add(new ItemMeasure(itemsCheckedMeasure.get(i).getText(),null));
-                                            addMeasureItems(measures_content,itemsCheckedMeasure.get(i).getText(),listMeasures);
-
-                                            i++;
-
-                                        }
                                         dialog.dismiss();
-                                        Toast.makeText(getApplicationContext(), "Click on the measure to specify the aggregate's function !", Toast.LENGTH_LONG).show();
 
 
                                     }
                                 });
-
 
 
                             }
                         });
 
-                        //browse and filling dimenisons
+
+
+                        //filling rows
                         dimensions_btn.setOnClickListener(new View.OnClickListener(){
                             @Override
                             public void onClick(View v){
@@ -239,143 +279,161 @@ public class AdhocActivity extends AppCompatActivity {
                                         ItemDTO itemDto = (ItemDTO) itemObject;
                                         CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
 
-                                        if(itemDto.isChecked())
-                                        {
+                                        if (itemDto.isChecked()) {
                                             itemCheckbox.setChecked(false);
                                             itemDto.setChecked(false);
                                             cleanCheckedItems(itemsCheckedDimensions, itemDto.getText());
                                             itemsCheckedDimensions.remove(itemDto);
+                                            removeDimension(itemDto.getText(), listDimensions);
 
 
-                                        }else
-                                        {
+                                        } else {
                                             itemCheckbox.setChecked(true);
                                             itemDto.setChecked(true);
                                             itemsCheckedDimensions.add(itemDto);
+                                            dimension = itemDto.getText();
+
+
+
+                                            Thread subThread = new Thread(new Runnable() {
+                                                @Override
+                                                public void run() {
+
+                                                    Service service = new Service(getApplicationContext());
+                                                    JSONArray jsonArray = service.consumesRest("/dimensionColumns?dimension=" + dimension);
+
+                                                    AdhocActivity.this.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            //check the column of dimension
+                                                            final Dialog dialog = new Dialog(AdhocActivity.this);
+                                                            dialog.setContentView(R.layout.columns_dimension);
+                                                            dialog.setTitle("Select the dimension's column");
+                                                            TextView header = (TextView) dialog.findViewById(R.id.header);
+                                                            header.setText(header.getText() + itemDto.getText());
+
+                                                            List<ItemDTO> itemsCheckedColumns = new ArrayList<ItemDTO>();
+
+                                                            Button confirm_btn = dialog.findViewById(R.id.confirm_columns_dimension);
+
+                                                            final ListView listViewWithCheckbox = (ListView) dialog.findViewById(R.id.list_view_with_checkbox);
+
+                                                            List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
+                                                            DataManager dataManager = new DataManager();
+
+                                                            //verify level hierarchy
+                                                            try {
+
+                                                                List<String> columnsDimensions = dataManager.getColumnsDimension(jsonArray);
+                                                                if (itemDto.getText().equals("dm_organisme")) {
+
+                                                                    columnsDimensions = dataManager.filterUnit(columnsDimensions, roleUser);
+
+                                                                }
+
+                                                                initItemList = getInitViewItemDtoList(columnsDimensions);
+
+                                                                List<String> list = listDimensions.get(0).getColumns();
+                                                                fillingCheck(initItemList, list);
+
+
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                            }
+
+                                                            final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
+
+                                                            listViewDataAdapter.notifyDataSetChanged();
+
+                                                            listViewWithCheckbox.setAdapter(listViewDataAdapter);
+
+                                                            dialog.show();
+                                                            listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                                                @Override
+                                                                public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
+                                                                    Object itemObject = adapterView.getAdapter().getItem(itemIndex);
+                                                                    ItemDTO itemDto = (ItemDTO) itemObject;
+                                                                    CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
+
+                                                                    if (itemDto.isChecked()) {
+                                                                        itemCheckbox.setChecked(false);
+                                                                        itemDto.setChecked(false);
+                                                                        cleanCheckedItems(itemsCheckedColumns, itemDto.getText());
+                                                                        itemsCheckedColumns.remove(itemDto);
+
+                                                                        listDimensions.get(0).getColumns().remove(0);
+
+                                                                    } else {
+                                                                        itemCheckbox.setChecked(true);
+                                                                        itemDto.setChecked(true);
+                                                                        itemsCheckedColumns.add(itemDto);
+
+                                                                        ArrayList<String> columns = new ArrayList<>();
+                                                                        columns.add(new String(itemDto.getText()));
+
+                                                                        listDimensions.add(new ItemDimension(dimension, columns));
+
+                                                                    }
+
+                                                                }
+                                                            });
+
+
+                                                            confirm_btn.setOnClickListener(new View.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(View v) {
+
+                                                                    if(itemsCheckedColumns.size()>1){
+                                                                        Toast.makeText(getApplicationContext(), "You should check only one item !", Toast.LENGTH_SHORT).show();
+                                                                    }else{
+
+                                                                        dialog.dismiss();
+                                                                    }
+
+
+                                                                }
+                                                            });
+
+                                                        }
+                                                    });
+
+
+                                                }
+                                            });
+                                            subThread.start();
+
 
                                         }
 
                                     }
+
                                 });
 
 
 
+                                //confirming dimensions
                                 confirm_btn.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        dimensions_content.removeAllViews();
-                                        listDimensions.clear();
 
-                                        int i = 0;
-                                        while (i<itemsCheckedDimensions.size()){
+                                        if(listDimensions.size()>1){
+                                            Toast.makeText(getApplicationContext(), "You should check one item of dimensions", Toast.LENGTH_SHORT).show();
+                                        }else{
+                                            dimensions_content.removeAllViews();
 
-                                            listDimensions.add(new ItemDimension(itemsCheckedDimensions.get(i).getText(),null));
-                                            addDimItems(dimensions_content,itemsCheckedDimensions.get(i).getText(), listDimensions);
+                                            addDimensionItem(dimensions_content, listDimensions);
 
+                                            dialog.dismiss();
 
-                                            i++;
+                                            save_btn.setEnabled(true);
+                                            filter_btn.setEnabled(true);
 
                                         }
-                                        dialog.dismiss();
-                                        Toast.makeText(getApplicationContext(), "Click on the dimensions to specify their columns !", Toast.LENGTH_LONG).show();
 
 
                                     }
                                 });
 
-
-
-                            }
-                        });
-
-                        //config measures and dimensions as columns or rows
-                        config_btn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                final Dialog dialog = new Dialog(AdhocActivity.this);
-                                dialog.setContentView(R.layout.popup_config_axes);
-
-
-                                Button confirm_config_btn = dialog.findViewById(R.id.confirm_config);
-
-                                final RadioGroup measuresGroup = dialog.findViewById(R.id.measures_group);
-                                final RadioGroup dimensionGroup = dialog.findViewById(R.id.dimensions_group);
-
-                                final RadioButton colMeasure = dialog.findViewById(R.id.columns_measures);
-                                final RadioButton rowMeasure = dialog.findViewById(R.id.rows_measures);
-
-                                final RadioButton colDimension = dialog.findViewById(R.id.columns_dimensions);
-                                final RadioButton rowDimension = dialog.findViewById(R.id.rows_dimensions);
-
-                                if(axeMeasureObject.getRole() != null){
-                                    if(axeMeasureObject.getRole().equals("columns")){
-                                        colMeasure.setChecked(true);
-                                        rowDimension.setChecked(true);
-                                    }else if(axeMeasureObject.getRole().equals("rows")) {
-                                        rowMeasure.setChecked(true);
-                                        colDimension.setChecked(true);
-                                    }
-                                }
-
-
-                                dialog.show();
-                                confirm_config_btn.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        save_btn.setEnabled(false);
-                                        filter_btn.setEnabled(true);
-
-                                        int radioButtonID = measuresGroup.getCheckedRadioButtonId();
-                                        View radioButton = measuresGroup.findViewById(radioButtonID);
-
-                                        int radioButtonID2 = dimensionGroup.getCheckedRadioButtonId();
-                                        View radioButton2 = dimensionGroup.findViewById(radioButtonID2);
-
-                                        String axeMeasures = null;
-                                        String axeDimension = null;
-
-                                        try {
-                                            axeMeasures = getResources().getResourceEntryName(radioButton.getId());
-                                            axeDimension = getResources().getResourceEntryName(radioButton2.getId());
-
-                                            if((axeMeasures.equals("columns_measures") && axeDimension.equals("columns_dimensions")) || (axeMeasures.equals("rows_measures") && axeDimension.equals("rows_dimensions"))){
-
-                                                Toast.makeText(AdhocActivity.this, "the roles must be different !", Toast.LENGTH_SHORT).show();
-                                            }else{
-
-                                                if(axeMeasures.equals("columns_measures")){
-
-                                                    axeMeasureObject.setName("measures");
-                                                    axeMeasureObject.setRole("columns");
-
-                                                }else if(axeMeasures.equals("rows_measures")){
-
-                                                    axeMeasureObject.setName("measures");
-                                                    axeMeasureObject.setRole("rows");
-
-                                                }
-
-                                                if(axeDimension.equals("columns_dimensions")){
-
-                                                    axeDimensionObject.setName("dimensions");
-                                                    axeDimensionObject.setRole("columns");
-
-                                                }else if(axeDimension.equals("rows_dimensions")){
-
-                                                    axeDimensionObject.setName("dimensions");
-                                                    axeDimensionObject.setRole("rows");
-                                                }
-                                                dialog.dismiss();
-                                                charts_btn.setEnabled(true);
-                                            }
-
-
-                                        }catch (NullPointerException n){
-                                            Toast.makeText(AdhocActivity.this, "You must check the role for each item !", Toast.LENGTH_SHORT).show();
-                                        }
-
-                                    }
-                                });
 
 
                             }
@@ -394,131 +452,143 @@ public class AdhocActivity extends AppCompatActivity {
 
                                 }else if(!validateDimensions(listDimensions) || listDimensions.isEmpty()){
 
-                                    //Toast.makeText(getApplicationContext(), "You must check the dimensions and specify their columns !", Toast.LENGTH_LONG).show();
-                                    throwingAlert("You must check the dimensions and specify their columns !");
+                                    throwingAlert("You must check the dimension and specify the column !");
+
                                 }else{
 
-                                    if(!validateAxes(axeMeasureObject,axeDimensionObject,listMeasures,listDimensions)){
+                                    String cube = dataManager.buildQuery(listMeasures, listDimensions, columnsListFilter, dataManager.getCurrentCube(getApplicationContext()));
+                                    System.out.println("query : "+cube);
 
-                                        throwingAlert("In the axis of the rows, it should be only one item !");
+                                    adhocColumns = dataManager.getAdhocColumns(listMeasures);
+                                    adhocRows = dataManager.getAdhocRows(listDimensions);
 
-                                    }else{
-                                        if(axeDimensionObject.getRole().equals("columns")){
-                                            cleanFilterList(adhocColumns,columnsListFilter);
-                                        }else{
-                                            cleanFilterList(adhocRows,columnsListFilter);
+
+                                    final Dialog dialog = new Dialog(AdhocActivity.this);
+                                    dialog.setContentView(R.layout.popup_typechart);
+                                    dialog.setTitle("Select the type of chart");
+
+                                    RadioButton radioCrosstable = dialog.findViewById(R.id.crosstable);
+                                    RadioButton radioPie = dialog.findViewById(R.id.piechart);
+                                    RadioButton radioColumn = dialog.findViewById(R.id.columnbarchart);
+                                    RadioButton radioLine = dialog.findViewById(R.id.linechart);
+
+
+                                    if(typeView != null){
+
+                                        if(typeView.equals("crosstable")){
+                                            radioCrosstable.setChecked(true);
+                                        }else  if(typeView.equals("piechart")){
+                                            radioPie.setChecked(true);
+                                        }else  if(typeView.equals("columnbarchart")){
+                                            radioColumn.setChecked(true);
+                                        }else  if(typeView.equals("linechart")){
+                                            radioLine.setChecked(true);
                                         }
 
-                                        String cube = dataManager.buildQuery(listMeasures,listDimensions, columnsListFilter, dataManager.getCurrentCube(getApplicationContext()));
-                                        System.out.println("query : "+cube);
+                                    }
 
-                                        adhocColumns = dataManager.getAdhocColumns(listMeasures,listDimensions,axeMeasureObject);
-                                        adhocRows = dataManager.getAdhocRows(listMeasures,listDimensions,axeMeasureObject);
+                                    dialog.show();
+                                    Button ok_btn = dialog.findViewById(R.id.confirm_typechart_btn);
+                                    ok_btn.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            final RadioGroup chartGroup = dialog.findViewById(R.id.typechart_radiogroup);
+                                            int radioButtonID = chartGroup.getCheckedRadioButtonId();
+                                            View radioButton = chartGroup.findViewById(radioButtonID);
 
-                                        if(adhocRows.size()>3){
-                                            adhocRows = cleanRows(adhocRows);
-                                        }
+                                            save_btn.setEnabled(true);
 
+                                            Thread subThread = new Thread(new Runnable() {
+                                                @Override
+                                                public void run() {
 
-                                        if(adhocRows.size()>1){
-                                            adhocRows = adhocRows.subList(0,1);
-                                        }
+                                                    System.out.println(cube);
+                                                    dataJS = service.consumesRest("?query="+cube);
 
-                                        final Dialog dialog = new Dialog(AdhocActivity.this);
-                                        dialog.setContentView(R.layout.popup_typechart);
-                                        dialog.setTitle("Select the type of chart");
+                                                    AdhocActivity.this.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            try {
+                                                                typeView = getResources().getResourceEntryName(radioButton.getId());
+                                                                dialog.dismiss();
 
-                                        RadioButton radioCrosstable = dialog.findViewById(R.id.crosstable);
-                                        RadioButton radioPie = dialog.findViewById(R.id.piechart);
-                                        RadioButton radioColumn = dialog.findViewById(R.id.columnbarchart);
-                                        RadioButton radioLine = dialog.findViewById(R.id.linechart);
+                                                                if(typeView.equals("crosstable")){
+                                                                    nextResult_btn.setEnabled(false);
+                                                                    loadFragment(new CrosstableFragment());
 
+                                                                }else if(typeView.equals("piechart")){
 
-                                        if(typeView != null){
-
-                                            if(typeView.equals("crosstable")){
-                                                radioCrosstable.setChecked(true);
-                                            }else  if(typeView.equals("piechart")){
-                                                radioPie.setChecked(true);
-                                            }else  if(typeView.equals("columnbarchart")){
-                                                radioColumn.setChecked(true);
-                                            }else  if(typeView.equals("linechart")){
-                                                radioLine.setChecked(true);
-                                            }
-
-                                        }
-
-                                        dialog.show();
-                                        Button ok_btn = dialog.findViewById(R.id.confirm_typechart_btn);
-                                        ok_btn.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                final RadioGroup chartGroup = dialog.findViewById(R.id.typechart_radiogroup);
-                                                int radioButtonID = chartGroup.getCheckedRadioButtonId();
-                                                View radioButton = chartGroup.findViewById(radioButtonID);
-
-                                                save_btn.setEnabled(true);
-
-                                                Thread subThread = new Thread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        dataJS = service.consumesRest("?query="+cube);
-
-                                                        AdhocActivity.this.runOnUiThread(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                try {
-                                                                    typeView = getResources().getResourceEntryName(radioButton.getId());
-                                                                    dialog.dismiss();
-
-                                                                    if(typeView.equals("crosstable")){
-                                                                        nextResult_btn.setEnabled(false);
-                                                                        loadFragment(new CrosstableFragment());
-
-                                                                    }else if(typeView.equals("piechart")){
-
-                                                                        try {
-                                                                            currentColumn = adhocColumns.get(0);
-                                                                            customPieContext.setColumn(adhocColumns.get(0));
-                                                                            nextResult_btn.setEnabled(true);
-                                                                            customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS,adhocColumns.get(0),adhocRows));
-                                                                        } catch (JSONException e) {
-                                                                            e.printStackTrace();
-                                                                        }
-
-                                                                        loadFragment(new PiechartFragment());
-
-                                                                    }else if(typeView.equals("columnbarchart")){
-                                                                        nextResult_btn.setEnabled(false);
-                                                                        loadFragment(new ColumnbarFrgament());
-
-                                                                    }else if(typeView.equals("linechart")){
-                                                                        nextResult_btn.setEnabled(false);
-                                                                        loadFragment(new LineChartFragment());
-
+                                                                    try {
+                                                                        currentColumn = adhocColumns.get(0);
+                                                                        customPieContext.setColumn(adhocColumns.get(0));
+                                                                        nextResult_btn.setEnabled(true);
+                                                                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS,adhocColumns.get(0),adhocRows));
+                                                                    } catch (JSONException e) {
+                                                                        e.printStackTrace();
                                                                     }
 
-                                                                }catch (NullPointerException n){
-                                                                    Toast.makeText(AdhocActivity.this, "You must check one type chart !", Toast.LENGTH_SHORT).show();
+                                                                    loadFragment(new PiechartFragment());
+
+                                                                }else if(typeView.equals("columnbarchart")){
+                                                                    nextResult_btn.setEnabled(false);
+                                                                    loadFragment(new ColumnbarFrgament());
+
+                                                                }else if(typeView.equals("linechart")){
+                                                                    nextResult_btn.setEnabled(false);
+                                                                    loadFragment(new LineChartFragment());
+
                                                                 }
+
+                                                            }catch (NullPointerException n){
+                                                                Toast.makeText(AdhocActivity.this, "You must check one type chart !", Toast.LENGTH_SHORT).show();
                                                             }
-                                                        });
+                                                        }
+                                                    });
 
 
-                                                    }
-                                                });
-                                                subThread.start();
+                                                }
+                                            });
+                                            subThread.start();
 
 
 
-                                            }
-                                        });
-                                    }
+                                        }
+                                    });
+
 
 
                                 }
 
 
+                            }
+                        });
+
+                        //get the next pie chart as view in the case of more than one column
+                        nextResult_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                int index = adhocColumns.indexOf(currentColumn);
+                                if(index+1 < adhocColumns.size()){
+                                    currentColumn = adhocColumns.get(index+1);
+                                    customPieContext.setColumn(currentColumn);
+                                    try {
+                                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+                                        loadFragment(new PiechartFragment());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }else if(index+1 == adhocColumns.size()){
+                                    currentColumn = adhocColumns.get(0);
+                                    customPieContext.setColumn(currentColumn);
+                                    try {
+                                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
+                                        loadFragment(new PiechartFragment());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
                         });
 
@@ -543,11 +613,7 @@ public class AdhocActivity extends AppCompatActivity {
                                             Toast.makeText(getApplicationContext(),"You must enter title to the report", Toast.LENGTH_SHORT).show();
                                         }else{
 
-                                            if(axeDimensionObject.getRole().equals("columns")){
-                                                cleanFilterList(adhocColumns,columnsListFilter);
-                                            }else{
-                                                cleanFilterList(adhocRows,columnsListFilter);
-                                            }
+
 
                                             String context = dataManager.buildQuery(listMeasures,listDimensions, columnsListFilter, dataManager.getCurrentCube(getApplicationContext()));
                                             PojoReport pojoReport = new PojoReport(title_report.getText().toString(),
@@ -610,53 +676,10 @@ public class AdhocActivity extends AppCompatActivity {
                         });
 
 
-
-                        //get the next pie chart as view in the case of more than one column
-                        nextResult_btn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                int index = adhocColumns.indexOf(currentColumn);
-                                if(index+1 < adhocColumns.size()){
-                                    currentColumn = adhocColumns.get(index+1);
-                                    customPieContext.setColumn(currentColumn);
-                                    try {
-                                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
-                                        loadFragment(new PiechartFragment());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }else if(index+1 == adhocColumns.size()){
-                                    currentColumn = adhocColumns.get(0);
-                                    customPieContext.setColumn(currentColumn);
-                                    try {
-                                        customPieContext.setDataEntryList(dataManager.parsingToListPie(dataJS, currentColumn, adhocRows));
-                                        loadFragment(new PiechartFragment());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        });
-
-
-
                         //clean the work space
                         clean_btn.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
-                                int i = 0;
-                                while(i<columnsListFilter.size()){
-                                    System.out.println("column is "+columnsListFilter.get(i).getColumn());
-                                    int j = 0;
-                                    while(j<columnsListFilter.get(i).getRows().size()){
-                                        System.out.println(columnsListFilter.get(i).getRows().get(j));
-                                        j++;
-                                    }
-                                    i++;
-                                }
 
 
                                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(AdhocActivity.this);
@@ -689,9 +712,7 @@ public class AdhocActivity extends AppCompatActivity {
                         });
 
 
-
-
-                        //make filter over columns of dimensions
+                        //make filter over dimensions
                         filter_btn.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -699,89 +720,67 @@ public class AdhocActivity extends AppCompatActivity {
                                 dialog.setContentView(R.layout.list_filter_columns);
 
                                 final Button confirm_btn = (Button) dialog.findViewById(R.id.filter_ok_btn);
-                                final ListView columnsList = (ListView) dialog.findViewById(R.id.list_view_columns);
+                                final ListView dimensionsList = (ListView) dialog.findViewById(R.id.list_view_columns);
 
-                                adhocColumns = dataManager.getAdhocColumns(listMeasures,listDimensions,axeMeasureObject);
-                                adhocRows = dataManager.getAdhocRows(listMeasures,listDimensions,axeMeasureObject);
+                                adhocColumns = dataManager.getAdhocColumns(listMeasures);
+                                adhocRows = dataManager.getAdhocRows(listDimensions);
 
-                                List<String> columns = new ArrayList<>();
-                                if(axeDimensionObject.getRole().equals("columns")){
-                                    columns = adhocColumns;
-                                }else if(axeDimensionObject.getRole().equals("rows")){
-                                    columns = adhocRows;
+                                List<String> dimensions = new ArrayList<>();
+
+                                try {
+                                    dimensions = dataManager.getItemsDimensions(dmData);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
 
-                                ArrayAdapter adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, columns);
-                                columnsList.setAdapter(adapter);
 
+                                ArrayAdapter adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, dimensions);
+                                dimensionsList.setAdapter(adapter);
 
                                 dialog.show();
 
-                                columnsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                dimensionsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                     @Override
                                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                         Object itemObject = parent.getAdapter().getItem(position);
-                                        String column = (String) itemObject.toString();
+                                        String itemDimension = (String) itemObject.toString();
+
 
                                         Thread subthread = new Thread(new Runnable() {
                                             @Override
                                             public void run() {
 
-                                                int i = 0;
-                                                while (i<listDimensions.size()){
-                                                    int j = 0;
-                                                    while (j<listDimensions.get(i).getColumns().size()){
-                                                        if(listDimensions.get(i).getColumns().get(j).equals(column)){
-                                                            ArrayList<String> col_dim = new ArrayList<>();
-                                                            col_dim.add(listDimensions.get(i).getColumns().get(j));
-                                                            item = new ItemDimension(listDimensions.get(i).getDimension(), col_dim);
-                                                            //dimListFilter.add(item);
-                                                        }
-                                                        j++;
-                                                    }
-
-                                                    i++;
-                                                }
-
-
-
                                                 Service service = new Service(getApplicationContext());
-
-                                                try {
-                                                    rowsColumns = dataManager.getColumnsDimension(service.consumesRest("/columnRow?table="+item.getDimension()+"&column="+item.getColumns().get(0) ) );
-                                                } catch (JSONException e) {
-                                                    e.printStackTrace();
-                                                }
-
-                                                filterColumn.setDimension(item.getDimension());
-                                                filterColumn.setColumn(column);
-                                                filterColumn.setRows(new ArrayList<>());
-
-                                                List<ItemDTO> itemsCheckedRows = new ArrayList<ItemDTO>();
-
+                                                JSONArray jsonArray = service.consumesRest("/dimensionColumns?dimension="+itemDimension);
 
                                                 AdhocActivity.this.runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
 
+
                                                         final Dialog dialog = new Dialog(AdhocActivity.this);
-                                                        dialog.setContentView(R.layout.rows_column);
-                                                        Button confirm_btn = dialog.findViewById(R.id.confirm_filter_column);
+                                                        dialog.setContentView(R.layout.columns_list);
+                                                        dialog.setTitle("Check the columns dimension");
+                                                        TextView header = (TextView) dialog.findViewById(R.id.header);
+                                                        header.setText(header.getText()+dimension);
 
 
+                                                        Button confirm_btn = dialog.findViewById(R.id.confirm_columns_list);
 
-                                                        ListView listViewWithCheckboxRow = (ListView) dialog.findViewById(R.id.list_view_with_checkbox_rows);
+                                                        final ListView listViewColumns = (ListView) dialog.findViewById(R.id.list_view_columns);
 
                                                         List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
-
+                                                        DataManager dataManager = new DataManager();
                                                         try {
+                                                             List<String> columnsDimensions = dataManager.getColumnsDimension(jsonArray);
+                                                             if(dimension.equals("dm_organisme")){
 
-                                                            initItemList = getInitViewItemDtoList(rowsColumns);
+                                                                 columnsDimensions = dataManager.filterUnit(columnsDimensions,roleUser);
 
-                                                            List<String> list = columnsListFilter.get(findFilterColumn(columnsListFilter, column)).getRows();
+                                                             }
 
-                                                            fillingCheck(initItemList, list);
-
+                                                            ArrayAdapter adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, columnsDimensions);
+                                                            listViewColumns.setAdapter(adapter);
 
                                                         } catch (Exception e) {
                                                             e.printStackTrace();
@@ -789,76 +788,157 @@ public class AdhocActivity extends AppCompatActivity {
 
 
 
-                                                        final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
-
-                                                        listViewDataAdapter.notifyDataSetChanged();
-
-                                                        listViewWithCheckboxRow.setAdapter(listViewDataAdapter);
-
-
                                                         dialog.show();
-
-                                                        listViewWithCheckboxRow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                                        listViewColumns.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                                             @Override
                                                             public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
                                                                 Object itemObject = adapterView.getAdapter().getItem(itemIndex);
-                                                                ItemDTO itemDto = (ItemDTO) itemObject;
-                                                                CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
+                                                                String itemColumn = (String) itemObject.toString();
 
-                                                                if(itemDto.isChecked())
-                                                                {
-                                                                    itemCheckbox.setChecked(false);
-                                                                    itemDto.setChecked(false);
-                                                                    cleanCheckedItems(itemsCheckedRows,itemDto.getText());
-                                                                    itemsCheckedRows.remove(itemDto);
+                                                                List<ItemDTO> itemsCheckedRows = new ArrayList<ItemDTO>();
 
-                                                                }else
-                                                                {
-                                                                    itemCheckbox.setChecked(true);
-                                                                    itemDto.setChecked(true);
-                                                                    itemsCheckedRows.add(itemDto);
+                                                                Thread subThread  = new Thread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
 
-                                                                }
+                                                                        try {
+                                                                            rowsColumns = dataManager.getColumnsDimension(service.consumesRest("/columnRow?table="+itemDimension+"&column="+itemColumn ) );
+                                                                        } catch (JSONException e) {
+                                                                            e.printStackTrace();
+                                                                        }
+
+                                                                        filterColumn.setDimension(itemDimension);
+                                                                        filterColumn.setColumn(itemColumn);
+                                                                        filterColumn.setRows(new ArrayList<>());
+
+                                                                        List<ItemDTO> itemsCheckedRows = new ArrayList<ItemDTO>();
+
+
+                                                                        AdhocActivity.this.runOnUiThread(new Runnable() {
+                                                                            @Override
+                                                                            public void run() {
+
+                                                                                final Dialog dialog = new Dialog(AdhocActivity.this);
+                                                                                dialog.setContentView(R.layout.rows_column);
+                                                                                Button confirm_btn = dialog.findViewById(R.id.confirm_filter_column);
+
+
+
+                                                                                ListView listViewWithCheckboxRow = (ListView) dialog.findViewById(R.id.list_view_with_checkbox_rows);
+
+                                                                                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
+
+                                                                                try {
+
+                                                                                    initItemList = getInitViewItemDtoList(rowsColumns);
+
+                                                                                    List<String> list = columnsListFilter.get(findFilterColumn(columnsListFilter, itemColumn)).getRows();
+
+                                                                                    fillingCheck(initItemList, list);
+
+
+                                                                                } catch (Exception e) {
+                                                                                    e.printStackTrace();
+                                                                                }
+
+
+
+                                                                                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
+
+                                                                                listViewDataAdapter.notifyDataSetChanged();
+
+                                                                                listViewWithCheckboxRow.setAdapter(listViewDataAdapter);
+
+
+                                                                                dialog.show();
+
+                                                                                listViewWithCheckboxRow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                                                                    @Override
+                                                                                    public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
+                                                                                        Object itemObject = adapterView.getAdapter().getItem(itemIndex);
+                                                                                        ItemDTO itemDto = (ItemDTO) itemObject;
+                                                                                        CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
+
+                                                                                        if(itemDto.isChecked())
+                                                                                        {
+                                                                                            itemCheckbox.setChecked(false);
+                                                                                            itemDto.setChecked(false);
+                                                                                            cleanCheckedItems(itemsCheckedRows,itemDto.getText());
+                                                                                            itemsCheckedRows.remove(itemDto);
+
+                                                                                        }else
+                                                                                        {
+                                                                                            itemCheckbox.setChecked(true);
+                                                                                            itemDto.setChecked(true);
+                                                                                            itemsCheckedRows.add(itemDto);
+
+                                                                                        }
+
+
+                                                                                    }
+                                                                                });
+
+
+
+
+                                                                                confirm_btn.setOnClickListener(new View.OnClickListener() {
+                                                                                    @Override
+                                                                                    public void onClick(View v) {
+
+                                                                                        int i = 0;
+                                                                                        int index = findFilterColumn(columnsListFilter,itemColumn);
+                                                                                        List<String> filterRows = new ArrayList<>();
+                                                                                        while (i<itemsCheckedRows.size()){
+
+                                                                                            filterRows.add(new String(itemsCheckedRows.get(i).getText()));
+                                                                                            i++;
+
+                                                                                        }
+
+                                                                                        if(findFilterColumn(columnsListFilter, itemColumn)>-1){
+                                                                                            columnsListFilter.get(index).setRows(filterRows);
+                                                                                        }else{
+
+                                                                                            columnsListFilter.add(new FilterColumn(filterColumn.getDimension(),filterColumn.getColumn()
+                                                                                                    ,filterRows));
+
+                                                                                        }
+
+
+                                                                                        dialog.dismiss();
+                                                                                    }
+                                                                                });
+
+
+
+
+                                                                            }
+                                                                        });
+
+                                                                    }
+                                                                });
+                                                                subThread.start();
+
+
+
+
 
 
                                                             }
                                                         });
-
-
 
 
                                                         confirm_btn.setOnClickListener(new View.OnClickListener() {
                                                             @Override
                                                             public void onClick(View v) {
 
-                                                                int i = 0;
-                                                                int index = findFilterColumn(columnsListFilter,column);
-                                                                List<String> filterRows = new ArrayList<>();
-                                                                while (i<itemsCheckedRows.size()){
-
-                                                                    filterRows.add(new String(itemsCheckedRows.get(i).getText()));
-                                                                    i++;
-
-                                                                }
-
-                                                                if(findFilterColumn(columnsListFilter, column)>-1){
-                                                                    columnsListFilter.get(index).setRows(filterRows);
-                                                                }else{
-
-                                                                    columnsListFilter.add(new FilterColumn(filterColumn.getDimension(),filterColumn.getColumn()
-                                                                            ,filterRows));
-
-                                                                }
-
                                                                 dialog.dismiss();
                                                             }
                                                         });
 
-
-
-
-                                                    }
+                                                        }
                                                 });
+
 
 
 
@@ -882,19 +962,12 @@ public class AdhocActivity extends AppCompatActivity {
                         });
 
 
-
-
-
                     }
                 });
 
             }
         });
         thread.start();
-
-
-
-
 
 
     }
@@ -939,228 +1012,143 @@ public class AdhocActivity extends AppCompatActivity {
     }
 
 
-    //adding measures to bar
-    public void addMeasureItems(LinearLayout linearLayout, String measure,List<ItemMeasure> itemMeasureList){
 
-        TextView measItem = new TextView(this);
-        measItem.setText(measure);
-        measItem.setTextColor(getResources().getColor(R.color.colorWhite));
-        measItem.setClickable(true);
+    //initialise the list with items checked
+    public void fillingCheck(List<ItemDTO> list, List<String> items){
 
-        measItem.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
+        if(items.size()>0){
+            int k = 0;
+            while(k<items.size()){
 
-                final Dialog dialog = new Dialog(AdhocActivity.this);
-                dialog.setContentView(R.layout.popup_aggregate_measure);
-                dialog.setTitle("Select the type of function");
-                TextView header = (TextView) dialog.findViewById(R.id.header);
-                header.setText(header.getText()+measure);
-
-                dialog.show();
-                Button ok_btn = dialog.findViewById(R.id.confirm_aggregate_btn);
-                ok_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final RadioGroup functionGroup = dialog.findViewById(R.id.aggregate_radiogroup);
-                        int radioButtonID = functionGroup.getCheckedRadioButtonId();
-                        View radioButton = functionGroup.findViewById(radioButtonID);
-                        String typeFunction = null;
-                        try {
-                            typeFunction = getResources().getResourceEntryName(radioButton.getId());
-                            dialog.dismiss();
-
-                            if(typeFunction.equals("sum")){
-                                int index = findMeasure(itemMeasureList, measure);
-                                itemMeasureList.get(index).setFunction(typeFunction);
-                                measItem.setText(measure+"("+typeFunction+")");
-
-                            }else if(typeFunction.equals("avg")){
-                                int index = findMeasure(itemMeasureList, measure);
-                                itemMeasureList.get(index).setFunction(typeFunction);
-                                measItem.setText(measure+"("+typeFunction+")");
-
-                            }
-
-                        }catch (NullPointerException n){
-                            Toast.makeText(AdhocActivity.this, "You must check one type of function !", Toast.LENGTH_SHORT).show();
-                        }
-
+                int i = 0;
+                while (i<list.size()){
+                    if(list.get(i).getText().equals(items.get(k))){
+                        list.get(i).setChecked(true);
                     }
-                });
+                    i++;
+                }
+                k++;
             }
-        });
+        }
+
+    }
+
+    //cleaning the checked items
+    public void cleanCheckedItems(List<ItemDTO> list,String item){
+
+        int i = 0;
+        while (i<list.size()){
+            if(list.get(i).getText().equals(item)){
+                list.remove(list.get(i));
+            }
+            i++;
+        }
+
+    }
+
+
+
+    //adding measures to bar
+    public void addMeasureItems(LinearLayout linearLayout, List<ItemMeasure> itemMeasureList){
 
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+
+        int i = 0;
+
+        while(i<itemMeasureList.size()){
+            lp.setMargins(20,30,20,0);
+
+            TextView measItem = new TextView(this);
+            measItem.setTextColor(getResources().getColor(R.color.colorWhite));
+
+            measItem.setText(itemMeasureList.get(i).getMeasure()+"("+itemMeasureList.get(i).getFunction()+")");
+
+            measItem.setLayoutParams(lp);
+
+            linearLayout.addView(measItem, lp);
+
+            i++;
+        }
+
+
+    }
+
+    //adding dimension to bar
+    public void addDimensionItem(LinearLayout linearLayout, List<ItemDimension> itemDimensionList){
+
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
         lp.setMargins(20,30,20,0);
-        measItem.setLayoutParams(lp);
 
-        linearLayout.addView(measItem, lp);
-
-    }
-
-
-
-    //adding dimensions to bar
-    public void addDimItems(LinearLayout linearLayout, String dimension, List<ItemDimension> dimensionList){
         TextView dimItem = new TextView(this);
-        dimItem.setText(dimension);
         dimItem.setTextColor(getResources().getColor(R.color.colorWhite));
-        dimItem.setClickable(true);
 
-        List<ItemDTO> itemsCheckedColumns = new ArrayList<ItemDTO>();
+        dimItem.setText(itemDimensionList.get(0).getDimension()+"("+itemDimensionList.get(0).getColumns().get(0)+")");
 
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Service service = new Service(getApplicationContext());
-                JSONArray jsonArray = service.consumesRest("/dimensionColumns?dimension="+dimension);
-
-                AdhocActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        dimItem.setOnClickListener(new View.OnClickListener() {
-                            public void onClick(View view) {
-
-                                final Dialog dialog = new Dialog(AdhocActivity.this);
-                                dialog.setContentView(R.layout.columns_dimension);
-                                dialog.setTitle("Select the columns dimension");
-                                TextView header = (TextView) dialog.findViewById(R.id.header);
-                                header.setText(header.getText()+dimension);
-
-
-                                Button confirm_btn = dialog.findViewById(R.id.confirm_columns_dimension);
-
-                                final ListView listViewWithCheckbox = (ListView) dialog.findViewById(R.id.list_view_with_checkbox);
-
-                                List<ItemDTO> initItemList = new ArrayList<ItemDTO>();
-                                DataManager dataManager = new DataManager();
-                                try {
-
-                                    List<String> columnsDimensions = dataManager.getColumnsDimension(jsonArray);
-                                    if(dimension.equals("dm_organisme")){
-
-                                        columnsDimensions = dataManager.filterUnit(columnsDimensions,roleUser);
-
-                                    }
-
-                                    initItemList = getInitViewItemDtoList(columnsDimensions);
-
-                                    List<String> list = dimensionList.get(findDimension(dimensionList, dimension)).getColumns();
-
-                                    fillingCheck(initItemList, list);
-
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-
-                                final ListItemAdapter listViewDataAdapter = new ListItemAdapter(initItemList, getApplicationContext());
-
-                                listViewDataAdapter.notifyDataSetChanged();
-
-                                listViewWithCheckbox.setAdapter(listViewDataAdapter);
-
-                                dialog.show();
-                                listViewWithCheckbox.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                                    @Override
-                                    public void onItemClick(AdapterView<?> adapterView, View view, int itemIndex, long l) {
-                                        Object itemObject = adapterView.getAdapter().getItem(itemIndex);
-                                        ItemDTO itemDto = (ItemDTO) itemObject;
-                                        CheckBox itemCheckbox = (CheckBox) view.findViewById(R.id.list_view_item_checkbox);
-
-                                        if(itemDto.isChecked())
-                                        {
-                                            itemCheckbox.setChecked(false);
-                                            itemDto.setChecked(false);
-                                            cleanCheckedItems(itemsCheckedColumns, itemDto.getText());
-                                            itemsCheckedColumns.remove(itemDto);
-
-
-                                        }else
-                                        {
-                                            itemCheckbox.setChecked(true);
-                                            itemDto.setChecked(true);
-                                            itemsCheckedColumns.add(itemDto);
-
-                                        }
-
-                                    }
-                                });
-
-
-                                confirm_btn.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-
-                                        int i = 0;
-                                        int index = findDimension(dimensionList,dimension);
-                                        ArrayList<String> columns = new ArrayList<>();
-                                        while (i<itemsCheckedColumns.size()){
-
-                                            columns.add(itemsCheckedColumns.get(i).getText());
-                                            i++;
-
-                                        }
-                                        dimensionList.get(index).setColumns(columns);
-                                        dialog.dismiss();
-
-                                    }
-                                });
-
-                            }
-                        });
-
-
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                        lp.setMargins(20,30,20,0);
-                        dimItem.setLayoutParams(lp);
-
-                        linearLayout.addView(dimItem, lp);
-                    }
-                });
-            }
-        });
-        thread.start();
-
-
-
+        dimItem.setLayoutParams(lp);
+        linearLayout.addView(dimItem, lp);
 
 
     }
 
+    //clean measures
+    public void removeMeasure(String item, List<ItemMeasure> itemMeasureList){
 
-
-    //locate measure item's index
-    public int findMeasure(List<ItemMeasure> list, String measure){
-
-        int i=0;
-        int index = 0;
-        while (i<list.size()){
-            if(list.get(i).getMeasure().equals(measure)){
-                index = list.indexOf(list.get(i));
+        int i = 0;
+        while (i<itemMeasureList.size()){
+            if(itemMeasureList.get(i).getMeasure().equals(item)){
+                itemMeasureList.remove(itemMeasureList.get(i));
             }
             i++;
         }
 
-        return index;
     }
 
-    //locate dimension item's index
-    public int findDimension(List<ItemDimension> list, String dimension){
 
-        int i=0;
-        int index = 0;
-        while (i<list.size()){
-            if(list.get(i).getDimension().equals(dimension)){
-                index = list.indexOf(list.get(i));
+    //clean dimensions
+    public void removeDimension(String item, List<ItemDimension> itemDimensionList){
+
+        int i = 0;
+        while (i<itemDimensionList.size()){
+            if(itemDimensionList.get(i).getDimension().equals(item)){
+                itemDimensionList.remove(itemDimensionList.get(i));
             }
             i++;
         }
 
-        return index;
     }
 
+
+
+    //verify the filling measures
+    public boolean validateMeasures(List<ItemMeasure> list){
+
+        boolean b = true;
+
+        if(list.size()<1){
+            b = false;
+        }
+
+        return b;
+
+    }
+
+
+    //verify the filling dimensions
+    public boolean validateDimensions(List<ItemDimension> list){
+
+        boolean b = true;
+
+        if(list.size()<1){
+            b = false;
+        }
+
+        return b;
+
+    }
 
     //locate filterColumn item's index
     public int findFilterColumn(List<FilterColumn> list, String column){
@@ -1175,45 +1163,6 @@ public class AdhocActivity extends AppCompatActivity {
         }
 
         return index;
-    }
-
-
-    //verify the filling measures
-    public boolean validateMeasures(List<ItemMeasure> list){
-
-        boolean b = true;
-        int i = 0;
-        while (i<list.size()){
-            if(list.get(i).getFunction() == null){
-                b = false;
-            }
-            i++;
-        }
-        return b;
-    }
-
-
-    //verify the filling dimensions
-    public boolean validateDimensions(List<ItemDimension> list){
-
-        boolean b = true;
-        int i = 0;
-        while (i<list.size()){
-            if(list.get(i).getColumns() == null){
-                b = false;
-            }else{
-                int j = 0;
-                while (j<list.get(i).getColumns().size()){
-                    if(list.get(i).getColumns().get(j) == null){
-                        b = false;
-                    }
-                    j++;
-                }
-            }
-
-          i++;
-        }
-        return b;
     }
 
     //throw an alert
@@ -1262,100 +1211,6 @@ public class AdhocActivity extends AppCompatActivity {
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
-
-    //validate columns and rows contraints
-    public boolean validateAxes(AxeMeasure axeMeasure, AxeDimension axeDimension, List<ItemMeasure> measureList, List<ItemDimension> dimensionList){
-        boolean b = true;
-
-        if(axeMeasure.getRole().equals("rows") && measureList.size() > 1){
-            b = false;
-        };
-
-        if(axeDimension.getRole().equals("rows") && dimensionList.size() > 1 && dimensionList.size() < 4){
-            b = false;
-        };
-
-        return b;
-
-    }
-
-    //initialise the list with items checked
-    public void fillingCheck(List<ItemDTO> list, List<String> items){
-
-        if(items.size()>0){
-            int k = 0;
-            while(k<items.size()){
-
-                int i = 0;
-                while (i<list.size()){
-                    if(list.get(i).getText().equals(items.get(k))){
-                        list.get(i).setChecked(true);
-                    }
-                    i++;
-                }
-                k++;
-            }
-        }
-
-    }
-
-
-    public void cleanCheckedItems(List<ItemDTO> list,String item){
-
-        int i = 0;
-        while (i<list.size()){
-            if(list.get(i).getText().equals(item)){
-                list.remove(list.get(i));
-            }
-            i++;
-        }
-    }
-
-
-    public void cleanFilterList(List<String> columns, List<FilterColumn> filterColumnList){
-
-        int i = 0;
-
-        while (i<filterColumnList.size()){
-
-            int j = 0;
-            boolean b = false;
-            while (j<columns.size()){
-
-                if(filterColumnList.get(i).getColumn().equals(columns.get(j))){
-                    b = true;
-                }
-                j++;
-
-                if(j == columns.size() && b == false){
-                    filterColumnList.remove(filterColumnList.get(i));
-                }
-
-
-            }
-
-            i++;
-        }
-    }
-
-    public List<String> cleanRows(List<String> list){
-        List<String> l = new ArrayList<>();
-
-        int i = 0;
-        while(i<list.size()){
-            if(list.get(i).equals("libelle_mois")){
-              l.add(new String(list.get(i)));
-            }
-
-            i++;
-        }
-
-       return l;
-
-    }
-
-
-
 
 
 
